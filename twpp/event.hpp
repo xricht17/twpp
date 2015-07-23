@@ -1,3 +1,5 @@
+/*
+
 The MIT License (MIT)
 
 Copyright (c) 2015 Martin Richter
@@ -20,3 +22,51 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
+*/
+
+#ifndef TWPP_DETAIL_FILE_EVENT_HPP
+#define TWPP_DETAIL_FILE_EVENT_HPP
+
+#include "../twpp.hpp"
+
+namespace Twpp {
+
+TWPP_DETAIL_PACK_BEGIN
+/// Loop event on Windows.
+/// Used while waiting for transfer.
+/// See manual for more info.
+class Event {
+
+public:
+    constexpr Event() noexcept :
+        m_event(nullptr), m_msg(Msg::Null){}
+
+    constexpr Event(void* event, Msg msg) noexcept :
+        m_event(event), m_msg(msg){}
+
+    constexpr void* event() const noexcept{
+        return m_event;
+    }
+
+    void setEvent(void* event) noexcept{
+        m_event = event;
+    }
+
+    constexpr Msg message() const noexcept{
+        return m_msg;
+    }
+
+    void setMessage(Msg msg) noexcept{
+        m_msg = msg;
+    }
+
+private:
+    void* m_event;
+    Msg m_msg;
+
+};
+TWPP_DETAIL_PACK_END
+
+}
+
+#endif // TWPP_DETAIL_FILE_EVENT_HPP
