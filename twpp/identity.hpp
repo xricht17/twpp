@@ -213,17 +213,17 @@ public:
     }
 
     /// Raw data group flags.
-    constexpr UInt32 dataGroupsRaw() noexcept{
+    constexpr UInt32 dataGroupsRaw() const noexcept{
         return m_groups;
     }
 
     /// TWAIN protocol major version.
-    constexpr UInt16 protocolMajor() noexcept{
+    constexpr UInt16 protocolMajor() const noexcept{
         return m_protoMaj;
     }
 
     /// TWAIN protocol minor version.
-    constexpr UInt16 protocolMinor() noexcept{
+    constexpr UInt16 protocolMinor() const noexcept{
         return m_protoMin;
     }
 

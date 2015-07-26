@@ -54,7 +54,7 @@ static constexpr inline T alias_cast(const void* ptr) noexcept{
 /// Suppresses warnings about unused parameters or arguments.
 /// \tparam Args List of argument types. No need to specify explicitly.
 template<typename... Args>
-static constexpr inline void unused(const Args& ...) noexcept{}
+static inline void unused(const Args& ...) noexcept{}
 
 
 
@@ -103,7 +103,7 @@ struct FixedArrayFlat : FixedArrayFlat<T, arraySize - 1> {
     /// the size of the fixed array.
     /// \param i Value index.
     /// \return Value at index.
-    constexpr inline T operator[](std::size_t i) noexcept{
+    constexpr inline T operator[](std::size_t i) const noexcept{
         return i == g_index ? m_val : FixedArrayFlat<T, g_index>::operator [](i);
     }
 
@@ -122,7 +122,7 @@ struct FixedArrayFlat<T, 0> {
     template<std::size_t inputSize>
     constexpr inline FixedArrayFlat(const T(&)[inputSize]) noexcept{}
 
-    constexpr inline T operator[](std::size_t) noexcept{
+    constexpr inline T operator[](std::size_t) const noexcept{
         return T();
     }
 
@@ -365,7 +365,7 @@ static constexpr inline typename std::make_signed<T>::type unsignedToSigned(T va
 /// \param b Second string.
 /// \return See strcmp.
 static constexpr inline int strCmp(const char* a, const char* b) noexcept{
-    return *a != *b ? (static_cast<int>(*a) - *b) : (a == '\0' ? 0 : strCmp(a + 1, b + 1));
+    return *a != *b ? (static_cast<int>(*a) - *b) : (*a == '\0' ? 0 : strCmp(a + 1, b + 1));
 }
 
 /// Absolute value.

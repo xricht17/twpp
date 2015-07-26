@@ -107,7 +107,7 @@ enum {
 
 // Linux
 #elif defined(__linux__)
-#   pragma warning "No testing has been done on this platform, this framework might not work correctly."
+#   warning "No testing has been done on this platform, this framework might not work correctly."
 #   define TWPP_DETAIL_OS_LINUX 1
     extern "C" {
 #   include <dlfcn.h>

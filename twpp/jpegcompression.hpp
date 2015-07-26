@@ -40,7 +40,7 @@ public:
     typedef Memory MemoryArr2[2];
     typedef Memory MemoryArr4[4];
 
-    constexpr JpegCompression() noexcept :
+    JpegCompression() noexcept :
         m_colorSpace(PixelType::BlackWhite), m_subSampling(0x10001000), m_components(0),
         m_restartFrequency(0), m_quantMap(), m_huffmanMap(){}
 

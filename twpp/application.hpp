@@ -90,7 +90,7 @@ public:
     /// Calling any method on such source results in
     /// undefined behaviour, and possibly segfault.
     /// Only isValid() and operator bool() may be called.
-    constexpr Source() noexcept{}
+    Source() noexcept{}
 
     ~Source(){
         if (d()){
@@ -780,7 +780,7 @@ class Manager {
 
 public:
     /// Creates an invalid manager.
-    constexpr Manager() noexcept{}
+    Manager() noexcept{}
 
     /// Creates a valid, unloaded manager.
     /// \param appIdentity Application identity.

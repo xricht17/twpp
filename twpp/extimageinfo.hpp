@@ -400,7 +400,7 @@ public:
     typedef const Info* const_iterator;
 
     /// Creates an invalid object.
-    constexpr ExtImageInfo() noexcept {}
+    ExtImageInfo() noexcept {}
 
     /// Creates a new structure for all supplied info IDs.
     /// Sources must not call this constructor, they

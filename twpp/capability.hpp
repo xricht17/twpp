@@ -1383,7 +1383,7 @@ public:
 
     /// Creates capability of the supplied type without any data.
     /// Useful for retrieving data from data source.
-    explicit constexpr Capability(CapType cap) noexcept :
+    explicit Capability(CapType cap) noexcept :
         m_cap(cap), m_conType(ConType::DontCare), m_cont(){}
 
     Capability(Capability&&) = default;

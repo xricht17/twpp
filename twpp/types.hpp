@@ -48,7 +48,7 @@ public:
     constexpr Bool(bool value = false) noexcept :
         m_value(value){}
 
-    constexpr operator bool() noexcept{
+    constexpr operator bool() const noexcept{
         return m_value;
     }
 
@@ -68,11 +68,11 @@ public:
         m_raw(raw){}
 
     /// Underlying OS-dependent handle.
-    constexpr Raw raw() noexcept{
+    constexpr Raw raw() const noexcept{
         return m_raw;
     }
 
-    constexpr operator bool() noexcept{
+    constexpr operator bool() const noexcept{
         return m_raw != Raw();
     }
 
