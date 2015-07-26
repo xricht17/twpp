@@ -44,7 +44,7 @@ public:
 
 
     /// Creates empty, invalid native transfer.
-    constexpr ImageNativeXfer() noexcept :
+    ImageNativeXfer() noexcept :
         m_handle(){}
 
     /// Creates a new ImageNativeXfer object from a handle.

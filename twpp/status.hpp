@@ -95,7 +95,7 @@ public:
 
 
     /// Creates a status utf8 without string data.
-    constexpr StatusUtf8(Status status = Status()) noexcept :
+    StatusUtf8(Status status = Status()) noexcept :
         m_status(status), m_size(0), m_string(){}
 
     /// Creates a status utf8 containing copy of string data.

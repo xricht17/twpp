@@ -214,6 +214,10 @@ public:
     }
 
 private:
+    void unused() const{
+        Detail::unused(m_reserved);
+    }
+
     Str255 m_inputPath;
     Str255 m_outputPath;
     void* m_context;

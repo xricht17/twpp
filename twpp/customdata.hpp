@@ -40,7 +40,7 @@ public:
     using Data = typename Detail::Lock<T>;
 
     /// Creates empty custom data.
-    constexpr CustomData() noexcept :
+    CustomData() noexcept :
         m_size(0), m_handle(){}
 
     /// Creates custom data with allocated memory.

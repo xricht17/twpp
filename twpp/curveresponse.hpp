@@ -37,7 +37,7 @@ namespace Detail {
 class CurveResponse {
 
 public:
-    constexpr CurveResponse() noexcept{}
+    CurveResponse() noexcept{}
 
     /// Creates a new (Rgb|Gray)Response with default elements, make sure that info.bitsPerPixel() is <= 8.
     /// \throw std::invalid_argument info.bitsPerPixel() is negative or greater than 8.
@@ -78,7 +78,7 @@ private:
 class RgbResponse : public Detail::CurveResponse {
 
 public:
-    constexpr RgbResponse() noexcept{}
+    RgbResponse() noexcept{}
 
     /// Creates a new RgbResponse with default elements, make sure that info.bitesPerPixel() is <= 8.
     /// \throw std::invalid_argument info.bitsPerPixel() is negative or greater than 8.
@@ -96,7 +96,7 @@ public:
 class GrayResponse : public Detail::CurveResponse {
 
 public:
-    constexpr GrayResponse() noexcept{}
+    GrayResponse() noexcept{}
 
     /// Creates a new GrayResponse with default elements, make sure that info.bitesPerPixel() is <= 8.
     /// \throw std::invalid_argument info.bitsPerPixel() is negative or greater than 8.

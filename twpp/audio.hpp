@@ -81,7 +81,7 @@ public:
 
 
     /// Creates an empty handle owner.
-    constexpr AudioNativeXfer() noexcept :
+    AudioNativeXfer() noexcept :
         m_handle(){}
 
     /// Creates a memory area of desired size for audio native transfer.

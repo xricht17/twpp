@@ -201,8 +201,8 @@ private:
 class TransformStage {
 
 public:
-    typedef DecodeFunction Decode[3];
-    typedef Fix32 Mix[3][3];
+    typedef std::array<DecodeFunction, 3> Decode;
+    typedef std::array<std::array<Fix32, 3>, 3> Mix;
 
     constexpr TransformStage() noexcept :
         m_decode(), m_mix(){}

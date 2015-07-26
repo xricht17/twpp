@@ -71,26 +71,22 @@ struct EntryPoint {
     MemUnlock m_unlock;
 };
 
-class CallBack {
+struct CallBack {
 
-public:
     constexpr CallBack(CallBackFunc func, CallBackConstant constant, Msg msg) noexcept :
         m_func(func), m_constant(constant), m_msg(msg){}
 
-private:
     CallBackFunc m_func;
     CallBackConstant m_constant;
     Msg m_msg;
 
 };
 
-class CallBack2 {
+struct CallBack2 {
 
-public:
     constexpr CallBack2(CallBackFunc func, UIntPtr constant, Msg msg) noexcept :
         m_func(func), m_constant(constant), m_msg(msg){}
 
-private:
     CallBackFunc m_func;
     UIntPtr m_constant;
     Msg m_msg;

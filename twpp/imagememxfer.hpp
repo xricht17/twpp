@@ -39,7 +39,7 @@ class ImageMemXferImpl {
 
 public:
     /// Creates a zero-initialized structure without any memory.
-    constexpr ImageMemXferImpl() noexcept :
+    ImageMemXferImpl() noexcept :
         m_compression(Compression::None), m_bytesPerRow(0), m_columns(0), m_rows(0),
         m_xoff(0), m_yoff(0), m_bytesWritten(0){}
 
@@ -158,7 +158,7 @@ class ImageMemXfer : public Detail::ImageMemXferImpl {
 
 public:
     /// Creates a zero-initialized structure without any memory.
-    constexpr ImageMemXfer() noexcept : Detail::ImageMemXferImpl(){}
+    ImageMemXfer() noexcept : Detail::ImageMemXferImpl(){}
 
     /// Creates an initialized structure from the supplied values and memory.
     /// The ownership of the memory is taken over.
@@ -182,7 +182,7 @@ class ImageMemFileXfer : public Detail::ImageMemXferImpl {
 
 public:
     /// Creates a zero-initialized structure without any memory.
-    constexpr ImageMemFileXfer() noexcept : Detail::ImageMemXferImpl(){}
+    ImageMemFileXfer() noexcept : Detail::ImageMemXferImpl(){}
 
     /// Creates an initialized structure from the supplied values and memory.
     /// The ownership of the memory is taken over.

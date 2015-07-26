@@ -49,6 +49,7 @@ SOFTWARE.
 #include <string>
 #include <list>
 #include <cstring>
+#include <array>
 
 #include "twpp/_fix_begin.hpp"
 
