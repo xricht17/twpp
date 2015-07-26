@@ -68,73 +68,87 @@ TWAIN workflow can be roughly described as:
 
 Let's start:
 
-    Manager mgr(
-        Identity(
-            Version(1, 0, Language::English, Country::UnitedKingdom, "v1.0"),
-            DataGroup::Image,
-            "Broke & Company",
-            "BC Scan",
-            "BC Soft Scan"
-        )
-    );
-    
+```c++
+Manager mgr(
+    Identity(
+        Version(1, 0, Language::English, Country::UnitedKingdom, "v1.0"),
+        DataGroup::Image,
+        "Broke & Company",
+        "BC Scan",
+        "BC Soft Scan"
+    )
+);
+```
+
 We have created a *Manager* object and set our application identity. The identity can be anything that describes the application. By providing *DataGroup::Image*, we tell the manager that we are prepared to handle image operations (support for control operations is indicated implicitly). Nothing is open yet, we only created means to access data source manager (DSM).
 
-    mgr.load(); // loads DSM DLL/SO/Framework
-    mgr.open(); // opens DSM
+```c++
+mgr.load(); // loads DSM DLL/SO/Framework
+mgr.open(); // opens DSM
+```
 
 With these two operations done, we can now perform operations on DSM, and ultimately open a data source (DS). Don't forget to check return values, any operation on DSM may fail! There are several ways to get a *Source* object:
 
-    // all available DSs
-    std::vector<Source> sources;
-    mgr.sources(sources);
+```c++
+// all available DSs
+std::vector<Source> sources;
+mgr.sources(sources);
 
-    // default DS
-    Source defSrc;
-    mgr.defaultSource(defSrc);
+// default DS
+Source defSrc;
+mgr.defaultSource(defSrc);
 
-    // show DS selection dialog, only on Windows and Mac OS
-    Source userSrc;
-    mgr.showSourceDialog(userSrc);
+// show DS selection dialog, only on Windows and Mac OS
+Source userSrc;
+mgr.showSourceDialog(userSrc);
 
-    // if we know the product name and manufacturer
-    Source src = mgr.createSource("product name", "manufacturer");
+// if we know the product name and manufacturer
+Source src = mgr.createSource("product name", "manufacturer");
+```
 
 Whatever approach we choose, we still have to actually open the DS.
 
-    src.open(); // not hard, is it?
+```c++
+src.open(); // not hard, is it?
+```
 
 Once open, DS allows us to negotiate capabilities.
 
-    // get supported capabilities
-    Capability supported(CapType::SupportedCaps);
-    src.capability(Msg::Get, supported);
+```c++
+// get supported capabilities
+Capability supported(CapType::SupportedCaps);
+src.capability(Msg::Get, supported);
 
-    for (CapType cap : supported.data<CapType::SupportedCaps>){
-        // iterate over supported capabilities
-    }
+for (CapType cap : supported.data<CapType::SupportedCaps>){
+    // iterate over supported capabilities
+}
 
-    // set image transfer mechanism
-    Capability xferMech = Capability::createOneValue<CapType::IXferMech>(XferMech::Native);
-    src.capability(Msg::Set, xferMech);
+// set image transfer mechanism
+Capability xferMech = Capability::createOneValue<CapType::IXferMech>(XferMech::Native);
+src.capability(Msg::Set, xferMech);
+```
 
 Capabilities negotiated, we can now enable DS (show its GUI) and wait for the beginning of image transfer.
 
-    src.enable(UserInterface(true, true, handleToApplicationWindow));
-    src.waitReady();
+```c++
+src.enable(UserInterface(true, true, handleToApplicationWindow));
+src.waitReady();
+```
 
 Finally the image transfer.
 
-    ImageNativeXfer xfer;
-    src.imageNativeXfer(xfer);
-    auto lock = xfer.data(); // also xfer.data<YourDataType>()
-    // lock.data() returns pointer to image data
-    // you can also use `lock->member` to access member variables
-    
-    // e.g. on Windows: 
-    auto bmp = xfer.data<BITMAPINFOHEADER>();
-    auto width = bmp->biWidth;
-    auto height = bmp->biHeight;
+```c++
+ImageNativeXfer xfer;
+src.imageNativeXfer(xfer);
+auto lock = xfer.data(); // also xfer.data<YourDataType>()
+// lock.data() returns pointer to image data
+// you can also use `lock->member` to access member variables
+
+// e.g. on Windows: 
+auto bmp = xfer.data<BITMAPINFOHEADER>();
+auto width = bmp->biWidth;
+auto height = bmp->biHeight;
+```
 
 If we used the original API, we would have to free resources. Luckily, we use TWPP and it does this for us automatically.
 
