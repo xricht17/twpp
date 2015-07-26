@@ -48,6 +48,7 @@ SOFTWARE.
 #include <map>
 #include <string>
 #include <list>
+#include <cstring>
 
 #include "twpp/_fix_begin.hpp"
 

@@ -162,7 +162,7 @@ namespace DsmLibOs {
     }
 
     static inline Handle load(bool) noexcept{
-        return ::dlopen("TWAINDSM.so", RTLD_LAZY);
+        return ::dlopen("libtwaindsm.so", RTLD_LAZY);
     }
 
     static inline void unload(Handle h) noexcept{
