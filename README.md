@@ -36,14 +36,14 @@ Requirements
 
 Compilers
 ---------
- - GCC: working on >= 4.8.0
+ - GCC: working on >= 4.8
  - MSVC: unknown
- - CLang: unknown
+ - CLang: working on >= 3.5
 
 Platforms
 ---------
  - Windows: working on Windows 7 32/64bit, expected to work fine on any 32/64bit version
- - Linux: working on Ubuntu 10.04 i386
+ - Linux: working on Ubuntu 10.04 i386, Ubuntu 14.04 i386
  - Mac OS: unknown, issues expected
 
 Installation
