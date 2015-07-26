@@ -25,29 +25,30 @@ TWPP was primarily designed to take away the burden of managing the dynamic memo
  - portability (with exception of certain string and data transfer operations)
  - type safety (scoped enumerations, distinguishable types)
  - compile-time strings and simple types
- - easy to use, but powerful API designed to be as similar as possible to the original *twain.h*
+ - easy to use, but powerful API designed to be as similar as possible to the original `twain.h`
 
 Requirements
 ------------
  - C++11
  - Windows, Linux, Mac OS X
- - standard *mutex* and *condition_variable* on Linux and Mac OS
+ - Linux, Mac OS: `<mutex>` and `<condition_variable>`
+ - Linux: -ldl
 
 Compilers
 ---------
- - GCC: working on >= 4.9.0
+ - GCC: working on >= 4.8.0
  - MSVC: unknown
  - CLang: unknown
 
 Platforms
 ---------
  - Windows: working on Windows 7 32/64bit, expected to work fine on any 32/64bit version
- - Linux: unknown, expected minor issues
- - Mac OS: uknown, expected major issues
+ - Linux: working on Ubuntu 10.04 i386
+ - Mac OS: unknown, issues expected
 
 Installation
 ------------
-Being header-only, installation consists of simply copying *twpp.hpp* and *twpp/* directory to one of your include directories or to your project file itself.
+Being header-only, installation consists of simply copying `twpp.hpp` and `twpp/` directory to one of your include directories or to your project directory itself.
 
 Usage
 -----
@@ -80,7 +81,7 @@ Manager mgr(
 );
 ```
 
-We have created a *Manager* object and set our application identity. The identity can be anything that describes the application. By providing *DataGroup::Image*, we tell the manager that we are prepared to handle image operations (support for control operations is indicated implicitly). Nothing is open yet, we only created means to access data source manager (DSM).
+We have created a `Manager` object and set our application identity. The identity can be anything that describes the application. By providing `DataGroup::Image`, we tell the manager that we are prepared to handle image operations (support for control operations is indicated implicitly). Nothing is open yet, we only created means to access data source manager (DSM).
 
 ```c++
 mgr.load(); // loads DSM DLL/SO/Framework
@@ -119,7 +120,7 @@ Once open, DS allows us to negotiate capabilities.
 Capability supported(CapType::SupportedCaps);
 src.capability(Msg::Get, supported);
 
-for (CapType cap : supported.data<CapType::SupportedCaps>){
+for (CapType cap : supported.data<CapType::SupportedCaps>()){
     // iterate over supported capabilities
 }
 
