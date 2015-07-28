@@ -1616,6 +1616,50 @@ public:
         return *this;
     }
 
+
+    /// Returns a copy of the current item of this capability.
+    /// Can be used only with Enumeration and OneValue containers.
+    /// \tparam type ID of the internal data type.
+    /// \tparam DataType Exported data type.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not Enumeration or OneValue.
+    /// \throw ItemTypeException When item type does not match.
+    template<Type type, typename DataType = typename Detail::Twty<type>::Type>
+    DataType currentItem(){
+        switch (m_conType){
+            case ConType::Enumeration:
+                return enumeration<type, DataType>().currentItem();
+
+            case ConType::OneValue:
+                return oneValue<type, DataType>().item();
+
+            default:
+                throw ContainerException();
+        }
+    }
+
+    /// Returns a copy of the current item of this capability.
+    /// Can be used only with Enumeration and OneValue containers.
+    /// \tparam T Data type.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not Enumeration or OneValue.
+    /// \throw ItemTypeException When item type does not match.
+    template<typename T>
+    T currentItem(){
+        return currentItem<Detail::Tytw<T>::twty, T>();
+    }
+
+    /// Returns a copy of the current item of this capability.
+    /// Can be used only with Enumeration and OneValue containers.
+    /// \tparam cap Capability type. Data types are set accordingly.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not Enumeration or OneValue.
+    /// \throw ItemTypeException When item type does not match.
+    template<CapType cap>
+    typename Detail::Cap<cap>::DataType currentItem(){
+        return currentItem<Detail::Cap<cap>::twty, typename Detail::Cap<cap>::DataType>();
+    }
+
 private:
     /// \throw DataException
     /// \throw ContainerException
