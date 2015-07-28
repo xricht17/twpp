@@ -285,7 +285,7 @@ protected:
 TWPP_ENTRY(MySource) // must be placed in exactly one source file
 ```
 
-`MySource` shows us all the operations a minimal DS must implement. Besides these `virtual` methods (member functions) a DS class must also provide `defaultIdentity` static method. Note `TWPP_ENTRY(MySource)`, this defines the TWAIN entrypoint `DS_Entry` and makes it use our DS class `MySource`. It *defines* a function, so it must be placed in exactly one source file.
+`MySource` shows us all the operations a minimal DS must implement. Besides these `virtual` methods (member functions) a DS class must also provide `defaultIdentity` static method. Note `TWPP_ENTRY(MySource)`, this defines the TWAIN entrypoint `DS_Entry` and makes it use our DS class `MySource`. It *defines* a function, so it must be placed in exactly one source file. On Windows, this function must be exported using DEF file (see *exports.def*) to disable name decoration.
 
 Each TWAIN operation returns `Result`. It is a combination of `ReturnCode` and `Status`. `ReturnCode` is ultimately returned to the calling application. `Status` is saved in case the application requests it later using the according TWAIN operation.
 
