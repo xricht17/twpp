@@ -60,6 +60,7 @@ SOFTWARE.
 #include "twpp/strings.hpp"
 #include "twpp/fix32.hpp"
 #include "twpp/frame.hpp"
+#include "twpp/exception.hpp"
 #include "twpp/typesops.hpp"
 
 #include "twpp/memoryops.hpp"

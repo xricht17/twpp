@@ -40,14 +40,14 @@ public:
     CurveResponse() noexcept{}
 
     /// Creates a new (Rgb|Gray)Response with default elements, make sure that info.bitsPerPixel() is <= 8.
-    /// \throw std::invalid_argument info.bitsPerPixel() is negative or greater than 8.
+    /// \throw RangeException When info.bitsPerPixel() is negative or greater than 8.
     explicit CurveResponse(const ImageInfo& info) : CurveResponse(info.bitsPerPixel()){}
 
     /// Creates a new (Rgb|Gray)Response with default elements, make sure that bitsPerPixel is <= 8.
-    /// \throw std::invalid_argument bitsPerPixel is negative or greater than 8.
+    /// \throw RangeException When bitsPerPixel is negative or greater than 8.
     explicit CurveResponse(Int16 bitsPerPixel){
         if (bitsPerPixel <= 0 || bitsPerPixel > 8){
-            throw std::invalid_argument("bits per pixel out of allowed range");
+            throw RangeException();
         }
 
         std::size_t size = 1 << bitsPerPixel;
@@ -81,12 +81,12 @@ public:
     RgbResponse() noexcept{}
 
     /// Creates a new RgbResponse with default elements, make sure that info.bitesPerPixel() is <= 8.
-    /// \throw std::invalid_argument info.bitsPerPixel() is negative or greater than 8.
+    /// \throw RangeException When info.bitsPerPixel() is negative or greater than 8.
     explicit RgbResponse(const ImageInfo& info) :
         Detail::CurveResponse(info) {}
 
     /// Creates a new RgbResponse with default elements, make sure that bitsPerPixel is <= 8.
-    /// \throw std::invalid_argument bitsPerPixel is negative or greater than 8.
+    /// \throw RangeException When bitsPerPixel is negative or greater than 8.
     explicit RgbResponse(Int16 bitsPerPixel) :
         Detail::CurveResponse(bitsPerPixel) {}
 
@@ -99,12 +99,12 @@ public:
     GrayResponse() noexcept{}
 
     /// Creates a new GrayResponse with default elements, make sure that info.bitesPerPixel() is <= 8.
-    /// \throw std::invalid_argument info.bitsPerPixel() is negative or greater than 8.
+    /// \throw RangeException When info.bitsPerPixel() is negative or greater than 8.
     explicit GrayResponse(const ImageInfo& info) :
         Detail::CurveResponse(info) {}
 
     /// Creates a new GrayResponse with default elements, make sure that bitsPerPixel is <= 8.
-    /// \throw std::invalid_argument bitsPerPixel is negative or greater than 8.
+    /// \throw RangeException When bitsPerPixel is negative or greater than 8.
     explicit GrayResponse(Int16 bitsPerPixel) :
         Detail::CurveResponse(bitsPerPixel) {}
 

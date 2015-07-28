@@ -113,14 +113,14 @@ public:
     /// Creates a new status utf8 containing a copy of the supplied string.
     /// \param status
     /// \param str Utf-8 string to copy, must be null-terminated.
-    /// \throw std::invalid_argument String is too long, could not insert null terminator.
+    /// \throw RangeException When string is too long, could not insert null terminator.
     /// \throw std::bad_alloc
     StatusUtf8(Status status, const char* str) :
         m_status(status), m_size(0), m_string(){
 
         auto len = strlen(str);
         if (len >= std::numeric_limits<UInt32>::max()){
-            throw std::invalid_argument("string too long");
+            throw RangeException();
         }
 
         m_size = static_cast<UInt32>(len) + 1;
@@ -131,14 +131,14 @@ public:
     /// Creates a new status utf8 containing a copy of the supplied string.
     /// \param status
     /// \param str Utf-8 string to copy.
-    /// \throw std::invalid_argument String is too long, could not insert null terminator.
+    /// \throw RangeException When string is too long, could not insert null terminator.
     /// \throw std::bad_alloc
     StatusUtf8(Status status, const std::string& str) :
         m_status(status), m_size(0), m_string(){
 
         auto len = str.length();
         if (len >= std::numeric_limits<UInt32>::max()){
-            throw std::invalid_argument("string too long");
+            throw RangeException();
         }
 
         m_size = static_cast<UInt32>(len) + 1;
@@ -154,14 +154,14 @@ public:
     /// \param str Utf-8 string to copy, null terminator is not required.
     /// \param strSize {Number of bytes to copy including null terminator.
     ///                     Null terminator is inserted automatically.}
-    /// \throw std::invalid_argument String is too short to satisfy the requested size.
+    /// \throw RangeException When string is too short to satisfy the requested size.
     /// \throw std::bad_alloc
     StatusUtf8(Status status, const char* str, UInt32 strSize) :
         m_status(status), m_size(0), m_string(){
 
         auto len = strlen(str);
         if (len < strSize){
-            throw std::invalid_argument("string too short");
+            throw RangeException();
         }
 
         m_size = static_cast<UInt32>(strSize) + 1;

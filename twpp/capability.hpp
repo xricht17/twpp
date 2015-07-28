@@ -1120,6 +1120,47 @@ public:
 
 }
 
+/// Base capability exception.
+class CapabilityException : public Exception {
+
+public:
+    virtual const char* what() const noexcept override{
+        return "Capability handling error.";
+    }
+
+};
+
+/// Invalid or unsupported container capability exception.
+class ContainerException : public CapabilityException {
+
+public:
+    virtual const char* what() const noexcept override{
+        return "Unexpected container.";
+    }
+
+};
+
+/// Invalid, unsupported or mismatched item type identifier capability exception.
+class ItemTypeException : public CapabilityException {
+
+public:
+    virtual const char* what() const noexcept override{
+        return "Invalid item type.";
+    }
+
+};
+
+/// No data capability exception.
+/// Capability does not contain any data (container).
+class DataException : public CapabilityException {
+
+public:
+    virtual const char* what() const noexcept override{
+        return "No data.";
+    }
+
+};
+
 TWPP_DETAIL_PACK_BEGIN
 /// TWAIN capability.
 /// Any access to containers must be finished before destroying
@@ -1401,10 +1442,10 @@ public:
 
     /// Item type.
     /// Valid only if the capability contains data.
-    /// \throw std::runtime_error Where there is no data.
+    /// \throw DataException When there is no data.
     Type itemType() const{
         if (!m_cont){
-            throw std::runtime_error("no data");
+            throw DataException();
         }
 
         return *m_cont.lock<Type>().data();
@@ -1417,7 +1458,9 @@ public:
     /// Contained OneValue container.
     /// \tparam type ID of the internal data type.
     /// \tparam DataType Exported data type.
-    /// \throw std::runtime_error When types don't match or there is no data.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not OneValue.
+    /// \throw ItemTypeException When item type does not match.
     template<Type type, typename DataType = typename Detail::Twty<type>::Type>
     OneValue<type, DataType> oneValue(){
         return containerCheck<OneValue, type, DataType>();
@@ -1425,7 +1468,9 @@ public:
 
     /// Contained OneValue container.
     /// \tparam T Data type.
-    /// \throw std::runtime_error When types don't match or there is no data.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not OneValue.
+    /// \throw ItemTypeException When item type does not match.
     template<typename T>
     OneValue<Detail::Tytw<T>::twty, T> oneValue(){
         return containerCheck<OneValue, Detail::Tytw<T>::twty, T>();
@@ -1433,7 +1478,9 @@ public:
 
     /// Contained OneValue container.
     /// \tparam cap Capability type. Data types are set accordingly.
-    /// \throw std::runtime_error When types don't match or there is no data.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not OneValue.
+    /// \throw ItemTypeException When item type does not match.
     template<CapType cap>
     OneValue<Detail::Cap<cap>::twty, typename Detail::Cap<cap>::DataType> oneValue(){
         return oneValue<Detail::Cap<cap>::twty, typename Detail::Cap<cap>::DataType>();
@@ -1442,7 +1489,9 @@ public:
     /// Contained Array container.
     /// \tparam type ID of the internal data type.
     /// \tparam DataType Exported data type.
-    /// \throw std::runtime_error When types don't match or there is no data.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not Array.
+    /// \throw ItemTypeException When item type does not match.
     template<Type type, typename DataType = typename Detail::Twty<type>::Type>
     Array<type, DataType> array(){
         return containerCheck<Array, type, DataType>();
@@ -1450,7 +1499,9 @@ public:
 
     /// Contained Array container.
     /// \tparam T Data type.
-    /// \throw std::runtime_error When types don't match or there is no data.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not Array.
+    /// \throw ItemTypeException When item type does not match.
     template<typename T>
     Array<Detail::Tytw<T>::twty, T> array(){
         return containerCheck<Array, Detail::Tytw<T>::twty, T>();
@@ -1458,7 +1509,9 @@ public:
 
     /// Contained Array container.
     /// \tparam cap Capability type. Data types are set accordingly.
-    /// \throw std::runtime_error When types don't match or there is no data.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not Array.
+    /// \throw ItemTypeException When item type does not match.
     template<CapType cap>
     Array<Detail::Cap<cap>::twty, typename Detail::Cap<cap>::DataType> array(){
         return array<Detail::Cap<cap>::twty, typename Detail::Cap<cap>::DataType>();
@@ -1467,7 +1520,9 @@ public:
     /// Contained Enumeration container.
     /// \tparam type ID of the internal data type.
     /// \tparam DataType Exported data type.
-    /// \throw std::runtime_error When types don't match or there is no data.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not Enumeration.
+    /// \throw ItemTypeException When item type does not match.
     template<Type type, typename DataType = typename Detail::Twty<type>::Type>
     Enumeration<type, DataType> enumeration(){
         return containerCheck<Enumeration, type, DataType>();
@@ -1475,7 +1530,9 @@ public:
 
     /// Contained Enumeration container.
     /// \tparam T Data type.
-    /// \throw std::runtime_error When types don't match or there is no data.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not Enumeration.
+    /// \throw ItemTypeException When item type does not match.
     template<typename T>
     Enumeration<Detail::Tytw<T>::twty, T> enumeration(){
         return containerCheck<Enumeration, Detail::Tytw<T>::twty, T>();
@@ -1483,7 +1540,9 @@ public:
 
     /// Contained Enumeration container.
     /// \tparam cap Capability type. Data types are set accordingly.
-    /// \throw std::runtime_error When types don't match or there is no data.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not Enumeration.
+    /// \throw ItemTypeException When item type does not match.
     template<CapType cap>
     Enumeration<Detail::Cap<cap>::twty, typename Detail::Cap<cap>::DataType> enumeration(){
         return enumeration<Detail::Cap<cap>::twty, typename Detail::Cap<cap>::DataType>();
@@ -1492,7 +1551,9 @@ public:
     /// Contained Range container.
     /// \tparam type ID of the internal data type.
     /// \tparam DataType Exported data type.
-    /// \throw std::runtime_error When types don't match or there is no data.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not Enumeration.
+    /// \throw ItemTypeException When item type does not match.
     template<Type type, typename DataType = typename Detail::Twty<type>::Type>
     Range<type, DataType> range(){
         return containerCheck<Range, type, DataType>();
@@ -1500,7 +1561,9 @@ public:
 
     /// Contained Range container.
     /// \tparam T Data type.
-    /// \throw std::runtime_error When types don't match or there is no data.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not Range.
+    /// \throw ItemTypeException When item type does not match.
     template<typename T>
     Range<Detail::Tytw<T>::twty, T> range(){
         return containerCheck<Range, Detail::Tytw<T>::twty, T>();
@@ -1508,7 +1571,9 @@ public:
 
     /// Contained Range container.
     /// \tparam cap Capability type. Data types are set accordingly.
-    /// \throw std::runtime_error When types don't match or there is no data.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not Range.
+    /// \throw ItemTypeException When item type does not match.
     template<CapType cap>
     Range<Detail::Cap<cap>::twty, typename Detail::Cap<cap>::DataType> range(){
         return range<Detail::Cap<cap>::twty, typename Detail::Cap<cap>::DataType>();
@@ -1521,7 +1586,9 @@ public:
     /// Use this only if you don't care about current or default values and container type.
     /// \tparam type ID of the internal data type.
     /// \tparam DataType Exported data type.
-    /// \throw std::runtime_error When types don't match or there is no data.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is invalid.
+    /// \throw ItemTypeException When item type does not match.
     template<Type type, typename DataType = typename Detail::Twty<type>::Type>
     Data<type, DataType> data() const{
         return *this;
@@ -1530,7 +1597,9 @@ public:
     /// Returns a data container for iterating over all possible values.
     /// Use this only if you don't care about current or default values and container type.
     /// \tparam T Data type.
-    /// \throw std::runtime_error When types don't match or there is no data.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is invalid.
+    /// \throw ItemTypeException When item type does not match.
     template<typename T>
     Data<Detail::Tytw<T>::twty, T> data() const{
         return *this;
@@ -1539,13 +1608,18 @@ public:
     /// Returns a data container for iterating over all possible values.
     /// Use this only if you don't care about current or default values and container type.
     /// \tparam cap Capability type. Data types are set accordingly.
-    /// \throw std::runtime_error When types don't match or there is no data.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is invalid.
+    /// \throw ItemTypeException When item type does not match.
     template<CapType cap>
     Data<Detail::Cap<cap>::twty, typename Detail::Cap<cap>::DataType> data() const{
         return *this;
     }
 
 private:
+    /// \throw DataException
+    /// \throw ContainerException
+    /// \throw ItemTypeException
     Capability(CapType cap, ConType conType, Type twty, UInt32 size) :
         m_cap(cap), m_conType(conType), m_cont(Detail::alloc(size)){
 
@@ -1558,16 +1632,16 @@ private:
         static_assert(sizeof(typename Detail::Twty<type>::Type) == sizeof(DataType), "type sizes dont match");
 
         if (!m_cont){
-            throw std::runtime_error("no data");
+            throw DataException();
         }
 
         if (Container<type, DataType>::contype != container()){
-            throw std::runtime_error("incorrect container");
+            throw ContainerException();
         }
 
         Container<type, DataType> ret(m_cont.get());        
         if (type != ret.type()){
-            throw std::runtime_error("incorrect type");
+            throw ItemTypeException();
         }
 
         return std::move(ret);
@@ -1582,6 +1656,9 @@ TWPP_DETAIL_PACK_END
 
 namespace Detail {
 
+/// \throw DataException
+/// \throw ContainerException
+/// \throw ItemTypeException
 template<Type type, bool numeric, typename DataType> // numeric = false
 inline CapDataImpl<type, numeric, DataType>::CapDataImpl(const Capability& cap) :
     m_conType(cap.m_conType), m_data(cap.m_cont.get()){
@@ -1590,7 +1667,7 @@ inline CapDataImpl<type, numeric, DataType>::CapDataImpl(const Capability& cap) 
     static_assert(sizeof(typename Detail::Twty<type>::Type) == sizeof(DataType), "type sizes dont match");
 
     if (!cap.m_cont){
-        throw std::runtime_error("no data");
+        throw DataException();
     }
 
     switch (m_conType){
@@ -1599,16 +1676,18 @@ inline CapDataImpl<type, numeric, DataType>::CapDataImpl(const Capability& cap) 
         case ConType::OneValue:
             break;
         case ConType::Range:
-            throw std::runtime_error("range requires numeric type");
         default:
-            throw std::runtime_error("unknown container");
+            throw ContainerException();
     }
 
     if (type != cap.itemType()){
-        throw std::runtime_error("incorrect type");
+        throw ItemTypeException();
     }
 }
 
+/// \throw DataException
+/// \throw ContainerException
+/// \throw ItemTypeException
 template<Type type, typename DataType>
 inline CapDataImpl<type, true, DataType>::CapDataImpl(const Capability& cap) :
     m_conType(cap.m_conType), m_data(cap.m_cont.get()){
@@ -1617,7 +1696,7 @@ inline CapDataImpl<type, true, DataType>::CapDataImpl(const Capability& cap) :
     static_assert(sizeof(typename Detail::Twty<type>::Type) == sizeof(DataType), "type sizes dont match");
 
     if (!cap.m_cont){
-        throw std::runtime_error("no data");
+        throw DataException();
     }
 
     switch (m_conType){
@@ -1627,11 +1706,11 @@ inline CapDataImpl<type, true, DataType>::CapDataImpl(const Capability& cap) :
         case ConType::Range:
             break;
         default:
-            throw std::runtime_error("unknown container");
+            throw ContainerException();
     }
 
     if (type != cap.itemType()){
-        throw std::runtime_error("incorrect type");
+        throw ItemTypeException();
     }
 }
 

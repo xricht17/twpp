@@ -84,13 +84,13 @@ public:
     }
 
     /// Creates a palette with the supplied type and elements from container.
-    /// \throw std::invalid_argument When there are more than 256 colors.
+    /// \throw RangeException When there are more than 256 colors.
     template<typename Container>
     Palette8(Type type, const Container& colors) :
         m_size(static_cast<UInt16>(colors.size())), m_type(type){
 
         if (colors.size() > 256){
-            throw std::invalid_argument("too many colors");
+            throw RangeException();
         }
 
         auto& array = m_colors.array();
@@ -101,12 +101,12 @@ public:
     }
 
     /// Creates a palette with the supplied type and elements.
-    /// \throw std::invalid_argument When there are more than 256 colors.
+    /// \throw RangeException When there are more than 256 colors.
     Palette8(Type type, const Element8* colors, UInt16 size) :
         m_size(size), m_type(type){
 
         if (m_size > 256){
-            throw std::invalid_argument("too many colors");
+            throw RangeException();
         }
 
         auto& array = m_colors.array();

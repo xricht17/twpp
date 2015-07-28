@@ -216,7 +216,7 @@ public:
     /// Allocating handles is not supported.
     /// \tparam id Information type ID. Data types are set accordingly.
     /// \param count Number of items to allocate.
-    /// \throw std::invalid_argument On handle or invalid type.
+    /// \throw TypeException When `type` is handle or invalid.
     /// \throw std::bad_alloc
     template<InfoId id>
     void allocSimple(UInt16 count = 1){
@@ -227,11 +227,11 @@ public:
     /// Allocating handles is not supported.
     /// \param type Data type ID.
     /// \param count Number of items to allocate.
-    /// \throw std::invalid_argument On handle or invalid type.
+    /// \throw TypeException When `type` is handle or invalid.
     /// \throw std::bad_alloc
     void allocSimple(Type type, UInt16 count = 1){
         if (type == Type::Handle){
-            throw std::invalid_argument("handle items not supported");
+            throw TypeException();
         }
 
         if (type == m_itemType && count == m_numItems){
@@ -288,11 +288,11 @@ public:
     /// Returns items contained in this entry.
     /// \tparam type ID of the internal data type.
     /// \tparam DataType Exported data type.
-    /// \throw std::invalid_argument When types don't match.
+    /// \throw TypeException When types don't match.
     template<Type type, typename DataType = typename Detail::Twty<type>::Type>
     Items<DataType> items(){
         if (type != m_itemType){
-            throw std::invalid_argument("incorrect type");
+            throw TypeException();
         }
 
         return itemsPriv<DataType>();
@@ -300,11 +300,11 @@ public:
 
     /// Returns items contained in this entry.
     /// \tparam id Information type ID. Data types are set accordingly.
-    /// \throw std::invalid_argument When types don't match.
+    /// \throw TypeException When types don't match.
     template<InfoId id>
     Items<typename Detail::Ext<id>::DataType> items(){
         if (Detail::Ext<id>::twty != m_itemType){
-            throw std::invalid_argument("incorrect type");
+            throw TypeException();
         }
 
         return itemsPriv<typename Detail::Ext<id>::DataType>();

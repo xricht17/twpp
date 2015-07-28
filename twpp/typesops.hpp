@@ -91,7 +91,7 @@ static inline UInt32 typeSize(Type type){
         case Type::Str255: return sizeof(Str255);
         case Type::Frame: return sizeof(Frame);
         case Type::Handle: return sizeof(Handle);
-        default: throw std::invalid_argument("unknown type");
+        default: throw TypeException();
     }
 }
 
