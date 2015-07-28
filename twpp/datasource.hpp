@@ -420,11 +420,13 @@ protected:
         }
 
             /// Get capability TWAIN call.
+            /// Always called in correct state.
             /// \param origin Identity of the caller.
             /// \param data Capability data.
             virtual Result capabilityGet(const Identity& origin, Capability& data) = 0;
 
             /// Get current capability TWAIN call.
+            /// Always called in correct state.
             /// \param origin Identity of the caller.
             /// \param data Capability data.
             virtual Result capabilityGetCurrent(const Identity& origin, Capability& data) = 0;
@@ -435,6 +437,7 @@ protected:
             virtual Result capabilityGetDefault(const Identity& origin, Capability& data) = 0;
 
             /// Get help capability TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Capability data.
@@ -444,6 +447,7 @@ protected:
             }
 
             /// Get label capability TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Capability data.
@@ -453,6 +457,7 @@ protected:
             }
 
             /// Get label enum capability TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Capability data.
@@ -462,25 +467,33 @@ protected:
             }
 
             /// Query support capability TWAIN call.
+            /// Always called in correct state.
             /// \param origin Identity of the caller.
             /// \param data Capability data.
             virtual Result capabilityQuerySupport(const Identity& origin, Capability& data) = 0;
 
             /// Reset capability TWAIN call.
+            /// Always called in correct state: 4, if you support extended
+            /// capabilities, override `capability` method.
             /// \param origin Identity of the caller.
             /// \param data Capability data.
             virtual Result capabilityReset(const Identity& origin, Capability& data) = 0;
 
             /// Reset all capability TWAIN call.
+            /// Always called in correct state.
             /// \param origin Identity of the caller.
             virtual Result capabilityResetAll(const Identity& origin) = 0;
 
             /// Set capability TWAIN call.
+            /// Always called in correct state: 4, if you support extended
+            /// capabilities, override `capability` method.
             /// \param origin Identity of the caller.
             /// \param data Capability data.
             virtual Result capabilitySet(const Identity& origin, Capability& data) = 0;
 
             /// Set capability TWAIN call.
+            /// Always called in correct state: 4, if you support extended
+            /// capabilities, override `capability` method.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Capability data.
@@ -492,7 +505,6 @@ protected:
 
 
         /// Custom data TWAIN call.
-        /// Default implementation does nothing.
         /// \param origin Identity of the caller.
         /// \param msg Message, action to perform.
         /// \param data Custom data.
@@ -514,6 +526,7 @@ protected:
         }
 
             /// Get custom data TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Custom data.
@@ -523,6 +536,7 @@ protected:
             }
 
             /// Set custom data TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Custom data.
@@ -532,7 +546,6 @@ protected:
             }
 
         /// Device event TWAIN call.
-        /// Default implementation does nothing.
         /// \param origin Identity of the caller.
         /// \param msg Message, action to perform.
         /// \param data Device event data.
@@ -545,6 +558,7 @@ protected:
         }
 
             /// Get device event TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Device event data.
@@ -573,11 +587,13 @@ protected:
 
 #if defined(TWPP_DETAIL_OS_WIN)
             /// Process event TWAIN call.
+            /// Always called in correct state.
             /// \param origin Identity of the caller.
             /// \param data Event data.
             virtual Result eventProcess(const Identity& origin, Event& data) = 0;
 #else
             /// Process event TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Event data.
@@ -643,7 +659,6 @@ protected:
             virtual Result identityCloseDs(const Identity& origin) = 0;
 
         /// File system TWAIN call.
-        /// Default implementation does nothing.
         /// \param origin Identity of the caller.
         /// \param msg Message, action to perform.
         /// \param data File system data.
@@ -729,6 +744,7 @@ protected:
         }
 
             /// Automatic capture directory file system TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data File system data.
@@ -738,6 +754,7 @@ protected:
             }
 
             /// Change directory file system TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data File system data.
@@ -748,6 +765,7 @@ protected:
 
 
             /// Copy file system TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data File system data.
@@ -757,6 +775,7 @@ protected:
             }
 
             /// Create directory file system TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data File system data.
@@ -766,6 +785,7 @@ protected:
             }
 
             /// Delete file system TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data File system data.
@@ -775,6 +795,7 @@ protected:
             }
 
             /// Format media file system TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data File system data.
@@ -784,6 +805,7 @@ protected:
             }
 
             /// Get close file system TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data File system data.
@@ -793,6 +815,7 @@ protected:
             }
 
             /// Get first file file system TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data File system data.
@@ -802,6 +825,7 @@ protected:
             }
 
             /// Get info file system TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data File system data.
@@ -811,6 +835,7 @@ protected:
             }
 
             /// Get next file file system TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data File system data.
@@ -820,6 +845,7 @@ protected:
             }
 
             /// Rename file system TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data File system data.
@@ -830,7 +856,6 @@ protected:
 
 
         /// Pass through TWAIN call.
-        /// Default implementation does nothing.
         /// \param origin Identity of the caller.
         /// \param msg Message, action to perform.
         /// \param data Pass through data.
@@ -844,6 +869,7 @@ protected:
         }
 
             /// Pass through pass through TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Pass through data.
@@ -949,7 +975,6 @@ protected:
             }
 
         /// Setup file xfer TWAIN call.
-        /// Default implementation does nothing.
         /// \param origin Identity of the caller.
         /// \param msg Message, action to perform.
         /// \param data Setup file xfer data.
@@ -989,6 +1014,7 @@ protected:
         }
 
             /// Get setup file xfer TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Setup file xfer data.
@@ -998,6 +1024,7 @@ protected:
             }
 
             /// Get default setup file xfer TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Setup file xfer data.
@@ -1007,6 +1034,7 @@ protected:
             }
 
             /// Set setup file xfer TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Setup file xfer data.
@@ -1016,6 +1044,7 @@ protected:
             }
 
             /// Reset setup file xfer TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Setup file xfer data.
@@ -1025,7 +1054,6 @@ protected:
             }
 
         /// Setup memory xfer TWAIN call.
-        /// Default implementation does nothing.
         /// \param origin Identity of the caller.
         /// \param msg Message, action to perform.
         /// \param data Setup memory xfer data.
@@ -1042,16 +1070,12 @@ protected:
         }
 
             /// Get setup memory xfer TWAIN call.
-            /// Default implementation does nothing.
+            /// Always called in correct state.
             /// \param origin Identity of the caller.
             /// \param data Setup memory xfer data.
-            virtual Result setupMemXferGet(const Identity& origin, SetupMemXfer& data){
-                Detail::unused(origin, data);
-                return badProtocol();
-            }
+            virtual Result setupMemXferGet(const Identity& origin, SetupMemXfer& data) = 0;
 
         /// Status TWAIN call.
-        /// Default implementation returns last status.
         /// \param origin Identity of the caller.
         /// \param msg Message, action to perform.
         /// \param data Status data.
@@ -1064,6 +1088,7 @@ protected:
         }
 
             /// Get status TWAIN call.
+            /// Always called in correct state.
             /// Default implementation returns last status.
             /// \param origin Identity of the caller.
             /// \param data Status data.
@@ -1074,7 +1099,6 @@ protected:
             }
 
         /// Status utf8 TWAIN call.
-        /// Default implementation does nothing.
         /// \param origin Identity of the caller.
         /// \param msg Message, action to perform.
         /// \param data Status utf8 data.
@@ -1088,6 +1112,7 @@ protected:
         }
 
             /// Get status utf8 TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param msg Message, action to perform.
@@ -1189,6 +1214,7 @@ protected:
         }
 
             /// Get xfer group TWAIN call.
+            /// Always called in correct state.
             /// Default implementation returns DataGroup::Image.
             /// \param origin Identity of the caller.
             /// \param data Xfer group data.
@@ -1199,6 +1225,7 @@ protected:
             }
 
             /// Set xfer group TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Xfer group data.
@@ -1269,7 +1296,6 @@ protected:
         }*/
 
         /// Ext image info TWAIN call.
-        /// Default implementation does nothing.
         /// \param origin Identity of the caller.
         /// \param msg Message, action to perform.
         /// \param data Ext image info data.
@@ -1286,6 +1312,7 @@ protected:
         }
 
             /// Get ext image info TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Ext image info data.
@@ -1295,7 +1322,6 @@ protected:
             }
 
         /// Gray response TWAIN call.
-        /// Default implementation does nothing.
         /// \param origin Identity of the caller.
         /// \param msg Message, action to perform.
         /// \param data Gray response data.
@@ -1317,6 +1343,7 @@ protected:
         }
 
             /// Set gray response TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Gray response data.
@@ -1326,6 +1353,7 @@ protected:
             }
 
             /// Reset gray response TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Gray response data.
@@ -1335,7 +1363,6 @@ protected:
             }
 
         /// ICC profile TWAIN call.
-        /// Default implementation does nothing.
         /// \param origin Identity of the caller.
         /// \param msg Message, action to perform.
         /// \param data ICC profile data.
@@ -1352,6 +1379,7 @@ protected:
         }
 
             /// Get ICC profile TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data ICC profile data.
@@ -1381,6 +1409,7 @@ protected:
         }
 
             /// Get image file xfer TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// Always called in correct state.
             /// \param origin Identity of the caller.
@@ -1406,6 +1435,7 @@ protected:
         }
 
             /// Get image info TWAIN call.
+            /// Always called in correct state.
             /// \param origin Identity of the caller.
             /// \param data Image info data.
             virtual Result imageInfoGet(const Identity& origin, ImageInfo& data) = 0;
@@ -1451,21 +1481,25 @@ protected:
         }
 
             /// Get image layout TWAIN call.
+            /// Always called in correct state.
             /// \param origin Identity of the caller.
             /// \param data Image layout data.
             virtual Result imageLayoutGet(const Identity& origin, ImageLayout& data) = 0;
 
             /// Get default image layout TWAIN call.
+            /// Always called in correct state.
             /// \param origin Identity of the caller.
             /// \param data Image layout data.
             virtual Result imageLayoutGetDefault(const Identity& origin, ImageLayout& data) = 0;
 
             /// Set image layout TWAIN call.
+            /// Always called in correct state.
             /// \param origin Identity of the caller.
             /// \param data Image layout data.
             virtual Result imageLayoutSet(const Identity& origin, ImageLayout& data) = 0;
 
             /// Reset image layout TWAIN call.
+            /// Always called in correct state.
             /// \param origin Identity of the caller.
             /// \param data Image layout data.
             virtual Result imageLayoutReset(const Identity& origin, ImageLayout& data) = 0;
@@ -1525,13 +1559,9 @@ protected:
 
             /// Get image memory xfer TWAIN call.
             /// Always called in correct state.
-            /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Image memory xfer data.
-            virtual Result imageMemXferGet(const Identity& origin, ImageMemXfer& data){
-                Detail::unused(origin, data);
-                return badProtocol();
-            }
+            virtual Result imageMemXferGet(const Identity& origin, ImageMemXfer& data) = 0;
 
         /// Image native xfer TWAIN call.
         /// \param origin Identity of the caller.
@@ -1561,7 +1591,6 @@ protected:
             virtual Result imageNativeXferGet(const Identity& origin, ImageNativeXfer& data) = 0;
 
         /// JPEG compression TWAIN call.
-        /// Default implementation does nothing.
         /// \param origin Identity of the caller.
         /// \param msg Message, action to perform.
         /// \param data JPEG compression data.
@@ -1601,6 +1630,7 @@ protected:
         }
 
             /// Get JPEG compression TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data JPEG compression data.
@@ -1610,6 +1640,7 @@ protected:
             }
 
             /// Get default JPEG compression TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data JPEG compression data.
@@ -1619,6 +1650,7 @@ protected:
             }
 
             /// Set JPEG compression TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data JPEG compression data.
@@ -1628,6 +1660,7 @@ protected:
             }
 
             /// Reset JPEG compression TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data JPEG compression data.
@@ -1637,7 +1670,6 @@ protected:
             }
 
         /// Palette8 TWAIN call.
-        /// Default implementation does nothing.
         /// \param origin Identity of the caller.
         /// \param msg Message, action to perform.
         /// \param data Palette8 data.
@@ -1677,6 +1709,7 @@ protected:
         }
 
             /// Get Palette8 TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Palette8 data.
@@ -1686,6 +1719,7 @@ protected:
             }
 
             /// Get default Palette8 TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Palette8 data.
@@ -1695,6 +1729,7 @@ protected:
             }
 
             /// Set Palette8 TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Palette8 data.
@@ -1704,6 +1739,7 @@ protected:
             }
 
             /// Reset Palette8 TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Palette8 data.
@@ -1713,7 +1749,6 @@ protected:
             }
 
         /// RGB response TWAIN call.
-        /// Default implementation does nothing.
         /// \param origin Identity of the caller.
         /// \param msg Message, action to perform.
         /// \param data RGB response data.
@@ -1735,6 +1770,7 @@ protected:
         }
 
             /// Set RGB response TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data RGB response data.
@@ -1744,6 +1780,7 @@ protected:
             }
 
             /// Reset RGB response TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data RGB response data.
@@ -1797,6 +1834,7 @@ protected:
 
             /// Get audio file xfer TWAIN call.
             /// Always called in correct state.
+            /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             virtual Result audioFileXferGet(const Identity& origin){
                 Detail::unused(origin);
@@ -1804,7 +1842,6 @@ protected:
             }
 
         /// Audio info TWAIN call.
-        /// Default implementation does nothing.
         /// \param origin Identity of the caller.
         /// \param msg Message, action to perform.
         /// \param data Audio info data.
@@ -1821,6 +1858,7 @@ protected:
         }
 
             /// Get audio info TWAIN call.
+            /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Audio info data.
@@ -1852,6 +1890,7 @@ protected:
 
             /// Get audio native xfer TWAIN call.
             /// Always called in correct state.
+            /// Default implementation does nothing.
             /// \param origin Identity of the caller.
             /// \param data Handle to audio native xfer data.
             virtual Result audioNativeXferGet(const Identity& origin, AudioNativeXfer& data){
