@@ -1104,6 +1104,9 @@ static inline constexpr MsgSupport operator^(MsgSupport a, MsgSupport b){
     return static_cast<MsgSupport>(static_cast<UInt32>(a) ^ static_cast<UInt32>(b));
 }
 
+/// Action support flags, nothing supported.
+static constexpr const MsgSupport msgSupportEmpty = static_cast<MsgSupport>(0);
+
 /// Action support flags, all `get` actions.
 static constexpr const MsgSupport msgSupportGetAll = MsgSupport::Get | MsgSupport::GetDefault | MsgSupport::GetCurrent;
 
