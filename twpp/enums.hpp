@@ -1073,7 +1073,7 @@ enum class Msg : UInt16 {
     Rename = 0x0809,
     Copy = 0x080A,
     AutomaticCaptureDirectory = 0x080B,
-    PassThru = 0x0901,
+    PassThrough = 0x0901,
     RegisterCallback = 0x0902,
     ResetAll = 0x0A01,
     CustomBase = 0x8000

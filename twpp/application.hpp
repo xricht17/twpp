@@ -386,7 +386,7 @@ public:
     }
 
     ReturnCode passThrough(PassThrough& inOut){
-        return call(DataGroup::Control, Msg::PassThru, inOut);
+        return call(DataGroup::Control, Msg::PassThrough, inOut);
     }
 
     ReturnCode pendingXfers(Msg msg, PendingXfers& inOut){
