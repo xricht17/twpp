@@ -290,10 +290,158 @@ protected:
     }
 
         /// Capability TWAIN call.
+        /// Reset, set and set constraint operations are limited to
+        /// state DsState::Open (4), override this method if you
+        /// support CapType::ExtendedCaps.
         /// \param origin Identity of the caller.
         /// \param msg Message, action to perform.
         /// \param data Capability data.
-        virtual ReturnCode capability(const Identity& origin, Msg msg, Capability& data) = 0;
+        virtual ReturnCode capability(const Identity& origin, Msg msg, Capability& data){
+            switch (msg){
+                case Msg::Get:
+                    // 4 - 7
+                    return capabilityGet(origin, data);
+
+                case Msg::GetCurrent:
+                    // 4 - 7
+                    return capabilityGetCurrent(origin, data);
+
+                case Msg::GetDefault:
+                    // 4 - 7
+                    return capabilityGetDefault(origin, data);
+
+                case Msg::GetHelp:
+                    if (!inState(DsState::Open)){
+                        return seqError();
+                    }
+
+                    return capabilityGetHelp(origin, data);
+
+                case Msg::GetLabel:
+                    if (!inState(DsState::Open)){
+                        return seqError();
+                    }
+
+                    return capabilityGetLabel(origin, data);
+
+                case Msg::GetLabelEnum:
+                    if (!inState(DsState::Open)){
+                        return seqError();
+                    }
+
+                    return capabilityGetLabelEnum(origin, data);
+
+                case Msg::QuerySupport:
+                    // 4 - 7
+                    return capabilityQuerySupport(origin, data);
+
+                case Msg::Reset:
+                    // 4, extended: 5, 6, 7
+                    if (!inState(DsState::Open)){
+                        return seqError();
+                    }
+
+                    return capabilityReset(origin, data);
+
+                case Msg::ResetAll:
+                    if (!inState(DsState::Open)){
+                        return seqError();
+                    }
+
+                    return capabilityResetAll(origin); // data has no meaning here
+
+                case Msg::Set:
+                    // 4, extended: 5, 6, 7
+                    if (!inState(DsState::Open)){
+                        return seqError();
+                    }
+
+                    return capabilitySet(origin, data);
+
+                case Msg::SetConstraint:
+                    // 4, extended: 5, 6, 7
+                    if (!inState(DsState::Open)){
+                        return seqError();
+                    }
+
+                    return capabilitySetConstraint(origin, data);
+
+                default:
+                    return badProtocol();
+            }
+        }
+
+            /// Get capability TWAIN call.
+            /// \param origin Identity of the caller.
+            /// \param data Capability data.
+            virtual ReturnCode capabilityGet(const Identity& origin, Capability& data) = 0;
+
+            /// Get current capability TWAIN call.
+            /// \param origin Identity of the caller.
+            /// \param data Capability data.
+            virtual ReturnCode capabilityGetCurrent(const Identity& origin, Capability& data) = 0;
+
+            /// Get default capability TWAIN call.
+            /// \param origin Identity of the caller.
+            /// \param data Capability data.
+            virtual ReturnCode capabilityGetDefault(const Identity& origin, Capability& data) = 0;
+
+            /// Get help capability TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data Capability data.
+            virtual ReturnCode capabilityGetHelp(const Identity& origin, Capability& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Get label capability TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data Capability data.
+            virtual ReturnCode capabilityGetLabel(const Identity& origin, Capability& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Get label enum capability TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data Capability data.
+            virtual ReturnCode capabilityGetLabelEnum(const Identity& origin, Capability& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Query support capability TWAIN call.
+            /// \param origin Identity of the caller.
+            /// \param data Capability data.
+            virtual ReturnCode capabilityQuerySupport(const Identity& origin, Capability& data) = 0;
+
+            /// Reset capability TWAIN call.
+            /// \param origin Identity of the caller.
+            /// \param data Capability data.
+            virtual ReturnCode capabilityReset(const Identity& origin, Capability& data) = 0;
+
+            /// Reset all capability TWAIN call.
+            /// \param origin Identity of the caller.
+            virtual ReturnCode capabilityResetAll(const Identity& origin) = 0;
+
+            /// Set capability TWAIN call.
+            /// \param origin Identity of the caller.
+            /// \param data Capability data.
+            virtual ReturnCode capabilitySet(const Identity& origin, Capability& data) = 0;
+
+            /// Set capability TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data Capability data.
+            virtual ReturnCode capabilitySetConstraint(const Identity& origin, Capability& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+
 
         /// Custom data TWAIN call.
         /// Default implementation does nothing.
@@ -301,9 +449,39 @@ protected:
         /// \param msg Message, action to perform.
         /// \param data Custom data.
         virtual ReturnCode customData(const Identity& origin, Msg msg, CustomData& data){
-            Detail::unused(origin, msg, data);
-            return badProtocol();
+            if (!inState(DsState::Open)){
+                return seqError();
+            }
+
+            switch (msg){
+                case Msg::Get:
+                    return customDataGet(origin, data);
+
+                case Msg::Set:
+                    return customDataSet(origin, data);
+
+                default:
+                    return badProtocol();
+            }
         }
+
+            /// Get custom data TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data Custom data.
+            virtual ReturnCode customDataGet(const Identity& origin, CustomData& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Set custom data TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data Custom data.
+            virtual ReturnCode customDataSet(const Identity& origin, CustomData& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
 
         /// Device event TWAIN call.
         /// Default implementation does nothing.
@@ -311,27 +489,54 @@ protected:
         /// \param msg Message, action to perform.
         /// \param data Device event data.
         virtual ReturnCode deviceEvent(const Identity& origin, Msg msg, DeviceEvent& data){
-            Detail::unused(origin, msg, data);
-            return badProtocol();
+            if (msg != Msg::Get){
+                return badProtocol();
+            }
+
+            return deviceEventGet(origin, data);
         }
 
+            /// Get device event TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data Device event data.
+            virtual ReturnCode deviceEventGet(const Identity& origin, DeviceEvent& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
 
-#if defined(TWPP_DETAIL_OS_WIN)
+
+
         /// Event TWAIN call.
-        /// \param origin Identity of the caller.
-        /// \param msg Message, action to perform.
-        /// \param data Event data.
-        virtual ReturnCode event(const Identity& origin, Msg msg, Event& data) = 0;
-#else
-        /// Event TWAIN call.
-        /// Default implementation does nothing.
         /// \param origin Identity of the caller.
         /// \param msg Message, action to perform.
         /// \param data Event data.
         virtual ReturnCode event(const Identity& origin, Msg msg, Event& data){
-            Detail::unused(origin, msg, data);
-            return badProtocol();
+            if (msg != Msg::ProcessEvent){
+                return badProtocol();
+            }
+
+            if (!inState(DsState::Enabled, DsState::Xferring)){
+                return seqError();
+            }
+
+            return eventProcess(origin, data);
         }
+
+#if defined(TWPP_DETAIL_OS_WIN)
+            /// Process event TWAIN call.
+            /// \param origin Identity of the caller.
+            /// \param data Event data.
+            virtual ReturnCode eventProcess(const Identity& origin, Event& data) = 0;
+#else
+            /// Process event TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data Event data.
+            virtual ReturnCode eventProcess(const Identity& origin, Event& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
 #endif
 
         /// Identity TWAIN call.
@@ -395,9 +600,186 @@ protected:
         /// \param msg Message, action to perform.
         /// \param data File system data.
         virtual ReturnCode fileSystem(const Identity& origin, Msg msg, FileSystem& data){
-            Detail::unused(origin, msg, data);
-            return badProtocol();
+            switch (msg){
+                case Msg::AutomaticCaptureDirectory:
+                    if (!inState(DsState::Open)){
+                        return seqError();
+                    }
+
+                    return fileSystemAutomatic(origin, data);
+
+                case Msg::ChangeDirectory:
+                    if (!inState(DsState::Open)){
+                        return seqError();
+                    }
+
+                    return fileSystemChange(origin, data);
+
+                case Msg::Copy:
+                    if (!inState(DsState::Open)){
+                        return seqError();
+                    }
+
+                    return fileSystemCopy(origin, data);
+
+                case Msg::CreateDirectory:
+                    if (!inState(DsState::Open)){
+                        return seqError();
+                    }
+
+                    return fileSystemCreate(origin, data);
+
+                case Msg::Delete:
+                    if (!inState(DsState::Open)){
+                        return seqError();
+                    }
+
+                    return fileSystemDelete(origin, data);
+
+                case Msg::FormatMedia:
+                    if (!inState(DsState::Open)){
+                        return seqError();
+                    }
+
+                    return fileSystemFormat(origin, data);
+
+                case Msg::GetClose:
+                    if (!inState(DsState::Open, DsState::XferReady)){
+                        return seqError();
+                    }
+
+                    return fileSystemGetClose(origin, data);
+
+                case Msg::GetFirstFile:
+                    if (!inState(DsState::Open, DsState::XferReady)){
+                        return seqError();
+                    }
+
+                    return fileSystemGetFirst(origin, data);
+
+                case Msg::GetInfo:
+                    // 4 - 7
+                    return fileSystemGetInfo(origin, data);
+
+                case Msg::GetNextFile:
+                    if (!inState(DsState::Open, DsState::XferReady)){
+                        return seqError();
+                    }
+
+                    return fileSystemGetNext(origin, data);
+
+                case Msg::Rename:
+                    if (!inState(DsState::Open)){
+                        return seqError();
+                    }
+
+                    return fileSystemRename(origin, data);
+
+                default:
+                    return badProtocol();
+            }
         }
+
+            /// Automatic capture directory file system TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data File system data.
+            virtual ReturnCode fileSystemAutomatic(const Identity& origin, FileSystem& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Change directory file system TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data File system data.
+            virtual ReturnCode fileSystemChange(const Identity& origin, FileSystem& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+
+            /// Copy file system TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data File system data.
+            virtual ReturnCode fileSystemCopy(const Identity& origin, FileSystem& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Create directory file system TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data File system data.
+            virtual ReturnCode fileSystemCreate(const Identity& origin, FileSystem& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Delete file system TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data File system data.
+            virtual ReturnCode fileSystemDelete(const Identity& origin, FileSystem& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Format media file system TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data File system data.
+            virtual ReturnCode fileSystemFormat(const Identity& origin, FileSystem& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Get close file system TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data File system data.
+            virtual ReturnCode fileSystemGetClose(const Identity& origin, FileSystem& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Get first file file system TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data File system data.
+            virtual ReturnCode fileSystemGetFirst(const Identity& origin, FileSystem& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Get info file system TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data File system data.
+            virtual ReturnCode fileSystemGetInfo(const Identity& origin, FileSystem& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Get next file file system TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data File system data.
+            virtual ReturnCode fileSystemGetNext(const Identity& origin, FileSystem& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Rename file system TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data File system data.
+            virtual ReturnCode fileSystemRename(const Identity& origin, FileSystem& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
 
         /// Pass through TWAIN call.
         /// Default implementation does nothing.
@@ -405,9 +787,22 @@ protected:
         /// \param msg Message, action to perform.
         /// \param data Pass through data.
         virtual ReturnCode passThrough(const Identity& origin, Msg msg, PassThrough& data){
-            Detail::unused(origin, msg, data);
-            return badProtocol();
+            if (msg != Msg::PassThrough){
+                return badProtocol();
+            }
+
+            // 4 - 7
+            return passThroughPass(origin, data);
         }
+
+            /// Pass through pass through TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data Pass through data.
+            virtual ReturnCode passThroughPass(const Identity& origin, PassThrough& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
 
         /// Pending xfers TWAIN call.
         /// \param origin Identity of the caller.
@@ -511,9 +906,75 @@ protected:
         /// \param msg Message, action to perform.
         /// \param data Setup file xfer data.
         virtual ReturnCode setupFileXfer(const Identity& origin, Msg msg, SetupFileXfer& data){
-            Detail::unused(origin, msg, data);
-            return badProtocol();
+            switch (msg){
+                case Msg::Get:
+                    if (!inState(DsState::Open, DsState::XferReady)){
+                        return seqError();
+                    }
+
+                    return setupFileXferGet(origin, data);
+
+                case Msg::GetDefault:
+                    if (!inState(DsState::Open, DsState::XferReady)){
+                        return seqError();
+                    }
+
+                    return setupFileXferGetDefault(origin, data);
+
+                case Msg::Set:
+                    if (!inState(DsState::Open, DsState::XferReady)){
+                        return seqError();
+                    }
+
+                    return setupFileXferSet(origin, data);
+
+                case Msg::Reset:
+                    if (!inState(DsState::Open)){
+                        return seqError();
+                    }
+
+                    return setupFileXferReset(origin, data);
+
+                default:
+                    return badProtocol();
+            }
         }
+
+            /// Get setup file xfer TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data Setup file xfer data.
+            virtual ReturnCode setupFileXferGet(const Identity& origin, SetupFileXfer& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Get default setup file xfer TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data Setup file xfer data.
+            virtual ReturnCode setupFileXferGetDefault(const Identity& origin, SetupFileXfer& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Set setup file xfer TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data Setup file xfer data.
+            virtual ReturnCode setupFileXferSet(const Identity& origin, SetupFileXfer& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Reset setup file xfer TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data Setup file xfer data.
+            virtual ReturnCode setupFileXferReset(const Identity& origin, SetupFileXfer& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
 
         /// Setup memory xfer TWAIN call.
         /// Default implementation does nothing.
@@ -521,9 +982,25 @@ protected:
         /// \param msg Message, action to perform.
         /// \param data Setup memory xfer data.
         virtual ReturnCode setupMemXfer(const Identity& origin, Msg msg, SetupMemXfer& data){
-            Detail::unused(origin, msg, data);
-            return badProtocol();
+            if (msg != Msg::Get){
+                return badProtocol();
+            }
+
+            if (!inState(DsState::Open, DsState::XferReady)){
+                return seqError();
+            }
+
+            return setupMemXferGet(origin, data);
         }
+
+            /// Get setup memory xfer TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data Setup memory xfer data.
+            virtual ReturnCode setupMemXferGet(const Identity& origin, SetupMemXfer& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
 
         /// Status TWAIN call.
         /// Default implementation returns last status.
@@ -531,14 +1008,22 @@ protected:
         /// \param msg Message, action to perform.
         /// \param data Status data.
         virtual ReturnCode status(const Identity& origin, Msg msg, Status& data){
-            Detail::unused(origin);
-            if (msg == Msg::Get){
-                data = lastStatus();
-                return success();
-            } else {
+            if (msg != Msg::Get){
                 return badProtocol();
             }
+
+            return statusGet(origin, data);
         }
+
+            /// Get status TWAIN call.
+            /// Default implementation returns last status.
+            /// \param origin Identity of the caller.
+            /// \param data Status data.
+            virtual ReturnCode statusGet(const Identity& origin, Status& data){
+                Detail::unused(origin);
+                data = lastStatus();
+                return success();
+            }
 
         /// Status utf8 TWAIN call.
         /// Default implementation does nothing.
@@ -546,9 +1031,23 @@ protected:
         /// \param msg Message, action to perform.
         /// \param data Status utf8 data.
         virtual ReturnCode statusUtf8(const Identity& origin, Msg msg, StatusUtf8& data){
-            Detail::unused(origin, msg, data);
-            return badProtocol();
+            if (msg != Msg::Get){
+                return badProtocol();
+            }
+
+            // 3 - 7
+            return statusUtf8Get(origin, data);
         }
+
+            /// Get status utf8 TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param msg Message, action to perform.
+            /// \param data Status utf8 data.
+            virtual ReturnCode statusUtf8Get(const Identity& origin, StatusUtf8& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
 
         /// User interface TWAIN call.
         /// \param origin Identity of the caller.
@@ -617,14 +1116,48 @@ protected:
             virtual ReturnCode userInterfaceEnableUiOnly(const Identity& origin, UserInterface& data) = 0;
 
         /// Xfer group TWAIN call.
-        /// Default implementation does nothing.
         /// \param origin Identity of the caller.
         /// \param msg Message, action to perform.
         /// \param data Xfer group data.
         virtual ReturnCode xferGroup(const Identity& origin, Msg msg, DataGroup& data){
-            Detail::unused(origin, msg, data);
-            return badProtocol();
+            switch (msg){
+                case Msg::Get:
+                    if (!inState(DsState::Open, DsState::XferReady)){
+                        return seqError();
+                    }
+
+                    return xferGroupGet(origin, data);
+
+                case Msg::Set:
+                    if (!inState(DsState::XferReady)){
+                        return seqError();
+                    }
+
+                    return xferGroupSet(origin, data);
+
+                default:
+                    return badProtocol();
+            }
         }
+
+            /// Get xfer group TWAIN call.
+            /// Default implementation returns DataGroup::Image.
+            /// \param origin Identity of the caller.
+            /// \param data Xfer group data.
+            virtual ReturnCode xferGroupGet(const Identity& origin, DataGroup& data){
+                Detail::unused(origin);
+                data = DataGroup::Image;
+                return success();
+            }
+
+            /// Set xfer group TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data Xfer group data.
+            virtual ReturnCode xferGroupSet(const Identity& origin, DataGroup& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
 
     /// Root of source image TWAIN calls.
     ///
@@ -693,9 +1226,25 @@ protected:
         /// \param msg Message, action to perform.
         /// \param data Ext image info data.
         virtual ReturnCode extImageInfo(const Identity& origin, Msg msg, ExtImageInfo& data){
-            Detail::unused(origin, msg, data);
-            return badProtocol();
+            if (msg != Msg::Get){
+                return badProtocol();
+            }
+
+            if (!inState(DsState::Xferring)){
+                return seqError();
+            }
+
+            return extImageInfoGet(origin, data);
         }
+
+            /// Get ext image info TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data Ext image info data.
+            virtual ReturnCode extImageInfoGet(const Identity& origin, ExtImageInfo& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
 
         /// Gray response TWAIN call.
         /// Default implementation does nothing.
@@ -703,19 +1252,65 @@ protected:
         /// \param msg Message, action to perform.
         /// \param data Gray response data.
         virtual ReturnCode grayResponse(const Identity& origin, Msg msg, GrayResponse& data){
-            Detail::unused(origin, msg, data);
-            return badProtocol();
+            if (!inState(DsState::Open)){
+                return seqError();
+            }
+
+            switch (msg){
+                case Msg::Set:
+                    return grayResponseSet(origin, data);
+
+                case Msg::Reset:
+                    return grayResponseReset(origin, data);
+
+                default:
+                    return badProtocol();
+            }
         }
+
+            /// Set gray response TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data Gray response data.
+            virtual ReturnCode grayResponseSet(const Identity& origin, GrayResponse& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Reset gray response TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data Gray response data.
+            virtual ReturnCode grayResponseReset(const Identity& origin, GrayResponse& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
 
         /// ICC profile TWAIN call.
         /// Default implementation does nothing.
         /// \param origin Identity of the caller.
         /// \param msg Message, action to perform.
         /// \param data ICC profile data.
-        virtual ReturnCode iccProfile(const Identity& origin, Msg msg, Memory& data){
-            Detail::unused(origin, msg, data);
-            return badProtocol();
+        virtual ReturnCode iccProfile(const Identity& origin, Msg msg, IccProfileMemory& data){
+            if (msg != Msg::Get){
+                return badProtocol();
+            }
+
+            if (!inState(DsState::XferReady, DsState::Xferring)){
+                return seqError();
+            }
+
+            return iccProfileGet(origin, data);
         }
+
+            /// Get ICC profile TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data ICC profile data.
+            virtual ReturnCode iccProfileGet(const Identity& origin, IccProfileMemory& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
 
         /// Image file xfer TWAIN call.
         /// \param origin Identity of the caller.
@@ -750,13 +1345,83 @@ protected:
         /// \param origin Identity of the caller.
         /// \param msg Message, action to perform.
         /// \param data Image info data.
-        virtual ReturnCode imageInfo(const Identity& origin, Msg msg, ImageInfo& data) = 0;
+        virtual ReturnCode imageInfo(const Identity& origin, Msg msg, ImageInfo& data){
+            if (msg != Msg::Get){
+                return badProtocol();
+            }
+
+            if (!inState(DsState::XferReady, DsState::Xferring)){
+                return seqError();
+            }
+
+            return imageInfoGet(origin, data);
+        }
+
+            /// Get image info TWAIN call.
+            /// \param origin Identity of the caller.
+            /// \param data Image info data.
+            virtual ReturnCode imageInfoGet(const Identity& origin, ImageInfo& data) = 0;
+
 
         /// Image layout TWAIN call.
         /// \param origin Identity of the caller.
         /// \param msg Message, action to perform.
         /// \param data Image layout data.
-        virtual ReturnCode imageLayout(const Identity& origin, Msg msg, ImageLayout& data) = 0;
+        virtual ReturnCode imageLayout(const Identity& origin, Msg msg, ImageLayout& data){
+            switch (msg){
+                case Msg::Get:
+                    if (!inState(DsState::Open, DsState::XferReady)){
+                        return seqError();
+                    }
+
+                    return imageLayoutGet(origin, data);
+
+                case Msg::GetDefault:
+                    if (!inState(DsState::Open, DsState::XferReady)){
+                        return seqError();
+                    }
+
+                    return imageLayoutGetDefault(origin, data);
+
+                case Msg::Set:
+                    if (!inState(DsState::Open)){
+                        return seqError();
+                    }
+
+                    return imageLayoutSet(origin, data);
+
+                case Msg::Reset:
+                    if (!inState(DsState::Open)){
+                        return seqError();
+                    }
+
+                    return imageLayoutReset(origin, data);
+
+                default:
+                    return badProtocol();
+            }
+        }
+
+            /// Get image layout TWAIN call.
+            /// \param origin Identity of the caller.
+            /// \param data Image layout data.
+            virtual ReturnCode imageLayoutGet(const Identity& origin, ImageLayout& data) = 0;
+
+            /// Get default image layout TWAIN call.
+            /// \param origin Identity of the caller.
+            /// \param data Image layout data.
+            virtual ReturnCode imageLayoutGetDefault(const Identity& origin, ImageLayout& data) = 0;
+
+            /// Set image layout TWAIN call.
+            /// \param origin Identity of the caller.
+            /// \param data Image layout data.
+            virtual ReturnCode imageLayoutSet(const Identity& origin, ImageLayout& data) = 0;
+
+            /// Reset image layout TWAIN call.
+            /// \param origin Identity of the caller.
+            /// \param data Image layout data.
+            virtual ReturnCode imageLayoutReset(const Identity& origin, ImageLayout& data) = 0;
+
 
         /// Image memory file xfer TWAIN call.
         /// \param origin Identity of the caller.
@@ -814,7 +1479,6 @@ protected:
             /// Always called in correct state.
             /// Default implementation does nothing.
             /// \param origin Identity of the caller.
-            /// \param msg Message, action to perform.
             /// \param data Image memory xfer data.
             virtual ReturnCode imageMemXferGet(const Identity& origin, ImageMemXfer& data){
                 Detail::unused(origin, data);
@@ -854,9 +1518,75 @@ protected:
         /// \param msg Message, action to perform.
         /// \param data JPEG compression data.
         virtual ReturnCode jpegCompression(const Identity& origin, Msg msg, JpegCompression& data){
-            Detail::unused(origin, msg, data);
-            return badProtocol();
+            switch (msg){
+                case Msg::Get:
+                    if (!inState(DsState::Open, DsState::XferReady)){
+                        return seqError();
+                    }
+
+                    return jpegCompressionGet(origin, data);
+
+                case Msg::GetDefault:
+                    if (!inState(DsState::Open, DsState::XferReady)){
+                        return seqError();
+                    }
+
+                    return jpegCompressionGetDefault(origin, data);
+
+                case Msg::Set:
+                    if (!inState(DsState::Open)){
+                        return seqError();
+                    }
+
+                    return jpegCompressionSet(origin, data);
+
+                case Msg::Reset:
+                    if (!inState(DsState::Open)){
+                        return seqError();
+                    }
+
+                    return jpegCompressionReset(origin, data);
+
+                default:
+                    return badProtocol();
+            }
         }
+
+            /// Get JPEG compression TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data JPEG compression data.
+            virtual ReturnCode jpegCompressionGet(const Identity& origin, JpegCompression& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Get default JPEG compression TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data JPEG compression data.
+            virtual ReturnCode jpegCompressionGetDefault(const Identity& origin, JpegCompression& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Set JPEG compression TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data JPEG compression data.
+            virtual ReturnCode jpegCompressionSet(const Identity& origin, JpegCompression& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Reset JPEG compression TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data JPEG compression data.
+            virtual ReturnCode jpegCompressionReset(const Identity& origin, JpegCompression& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
 
         /// Palette8 TWAIN call.
         /// Default implementation does nothing.
@@ -864,9 +1594,75 @@ protected:
         /// \param msg Message, action to perform.
         /// \param data Palette8 data.
         virtual ReturnCode palette8(const Identity& origin, Msg msg, Palette8& data){
-            Detail::unused(origin, msg, data);
-            return badProtocol();
+            switch (msg){
+                case Msg::Get:
+                    if (!inState(DsState::Open, DsState::XferReady)){
+                        return seqError();
+                    }
+
+                    return palette8Get(origin, data);
+
+                case Msg::GetDefault:
+                    if (!inState(DsState::Open, DsState::XferReady)){
+                        return seqError();
+                    }
+
+                    return palette8GetDefault(origin, data);
+
+                case Msg::Set:
+                    if (!inState(DsState::Open)){
+                        return seqError();
+                    }
+
+                    return palette8Set(origin, data);
+
+                case Msg::Reset:
+                    if (!inState(DsState::Open)){
+                        return seqError();
+                    }
+
+                    return palette8Reset(origin, data);
+
+                default:
+                    return badProtocol();
+            }
         }
+
+            /// Get Palette8 TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data Palette8 data.
+            virtual ReturnCode palette8Get(const Identity& origin, Palette8& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Get default Palette8 TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data Palette8 data.
+            virtual ReturnCode palette8GetDefault(const Identity& origin, Palette8& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Set Palette8 TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data Palette8 data.
+            virtual ReturnCode palette8Set(const Identity& origin, Palette8& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Reset Palette8 TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data Palette8 data.
+            virtual ReturnCode palette8Reset(const Identity& origin, Palette8& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
 
         /// RGB response TWAIN call.
         /// Default implementation does nothing.
@@ -874,9 +1670,39 @@ protected:
         /// \param msg Message, action to perform.
         /// \param data RGB response data.
         virtual ReturnCode rgbResponse(const Identity& origin, Msg msg, RgbResponse& data){
-            Detail::unused(origin, msg, data);
-            return badProtocol();
+            if (!inState(DsState::Open)){
+                return seqError();
+            }
+
+            switch (msg){
+                case Msg::Set:
+                    return rgbResponseSet(origin, data);
+
+                case Msg::Reset:
+                    return rgbResponseReset(origin, data);
+
+                default:
+                    return badProtocol();
+            }
         }
+
+            /// Set RGB response TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data RGB response data.
+            virtual ReturnCode rgbResponseSet(const Identity& origin, RgbResponse& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
+
+            /// Reset RGB response TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data RGB response data.
+            virtual ReturnCode rgbResponseReset(const Identity& origin, RgbResponse& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
 
 
     /// Root of source audio TWAIN calls.
@@ -935,9 +1761,25 @@ protected:
         /// \param msg Message, action to perform.
         /// \param data Audio info data.
         virtual ReturnCode audioInfo(const Identity& origin, Msg msg, AudioInfo& data){
-            Detail::unused(origin, msg, data);
-            return badProtocol();
+            if (msg != Msg::Get){
+                return badProtocol();
+            }
+
+            if (!inState(DsState::XferReady, DsState::Xferring)){
+                return seqError();
+            }
+
+            return audioInfoGet(origin, data);
         }
+
+            /// Get audio info TWAIN call.
+            /// Default implementation does nothing.
+            /// \param origin Identity of the caller.
+            /// \param data Audio info data.
+            virtual ReturnCode audioInfoGet(const Identity& origin, AudioInfo& data){
+                Detail::unused(origin, data);
+                return badProtocol();
+            }
 
         /// Audio native xfer TWAIN call.
         /// \param origin Identity of the caller.
@@ -963,7 +1805,6 @@ protected:
             /// Get audio native xfer TWAIN call.
             /// Always called in correct state.
             /// \param origin Identity of the caller.
-            /// \param msg Message, action to perform.
             /// \param data Handle to audio native xfer data.
             virtual ReturnCode audioNativeXferGet(const Identity& origin, AudioNativeXfer& data){
                 Detail::unused(origin, data);
