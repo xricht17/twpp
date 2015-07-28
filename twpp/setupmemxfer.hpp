@@ -65,7 +65,7 @@ public:
     }
 
     /// Sets maximal supported buffer size in bytes.
-    void maxSize(UInt32 maxSize) noexcept{
+    void setMaxSize(UInt32 maxSize) noexcept{
         m_maxSize = maxSize;
     }
 
