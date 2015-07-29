@@ -37,7 +37,7 @@ Requirements
 Compilers
 ---------
  - GCC: working on >= 4.8
- - MSVC: unknown
+ - MSVC: working on >= 2015
  - CLang: working on >= 3.5
 
 Platforms
