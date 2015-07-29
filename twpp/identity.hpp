@@ -177,22 +177,22 @@ public:
 
     /// Whether a data group is supported.
     constexpr bool supports(DataGroup group) const noexcept{
-        return m_groups & group;
+        return (m_groups & group) != 0;
     }
 
     /// Whether this is V2 application.
     constexpr bool isAppV2() const noexcept{
-        return m_groups & Detail::App2;
+        return (m_groups & Detail::App2) != 0;
     }
 
     /// Whether this is V2 DSM.
     constexpr bool isDsmV2() const noexcept{
-        return m_groups & Detail::Dsm2;
+        return (m_groups & Detail::Dsm2) != 0;
     }
 
     /// Whether this is V2 source.
     constexpr bool isDsV2() const noexcept{
-        return m_groups & Detail::Ds2;
+        return (m_groups & Detail::Ds2) != 0;
     }
 
     /// The manufacturer.

@@ -49,7 +49,7 @@ public:
         m_value(value){}
 
     constexpr operator bool() const noexcept{
-        return m_value;
+        return m_value != 0;
     }
 
 private:

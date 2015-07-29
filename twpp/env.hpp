@@ -46,7 +46,7 @@ enum {
 
 }
 
-#ifdef TWPP_IS_DS
+#if defined(TWPP_IS_DS)
 #   define TWPP_DETAIL_IS_DS 1
 #else
 #   define TWPP_DETAIL_IS_DS 0
@@ -65,6 +65,7 @@ enum {
 #       define TWPP_DETAIL_OS_WIN32 1
 #   endif
 #   define WIN32_LEAN_AND_MEAN
+#   define NOMINMAX
     extern "C" {
 #   include <windows.h>
     }
@@ -163,6 +164,11 @@ enum {
 #else
 #   error unsupported compiler, please define your own TWPP_DETAIL_PACK_BEGIN \
           and TWPP_DETAIL_PACK_END and possibly TWPP_DETAIL_EXPORT in twpp/env.hpp and send me your patch
+#endif
+
+
+#if (!defined(_MSC_VER) && __cplusplus < 201103L) || (defined(_MSC_VER) && _MSC_VER < 1900) // msvc2015
+#   error "C++11 or later is required"
 #endif
 
 

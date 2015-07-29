@@ -27,6 +27,7 @@ SOFTWARE.
 #ifndef TWPP_DETAIL_FILE_CIE_HPP
 #define TWPP_DETAIL_FILE_CIE_HPP
 
+#if 0
 #include "../twpp.hpp"
 
 namespace Twpp {
@@ -262,6 +263,7 @@ struct CieColor {
 TWPP_DETAIL_PACK_END
 
 }
+#endif
 
 #endif // TWPP_DETAIL_FILE_CIE_HPP
 

@@ -1177,12 +1177,22 @@ public:
     /// \param cap Capability type.
     /// \param value Initial value.
     /// \throw std::bad_alloc
-    template<Type type, typename DataType = typename Detail::Twty<type>::Type>
+    template<Type type, typename DataType>
     static Capability createOneValue(CapType cap, const DataType& value = DataType()){
         Capability ret(cap, ConType::OneValue, type, sizeof(Detail::OneValueData<DataType>));
         auto ov = ret.oneValue<type, DataType>();
         ov.setItem(value);
         return std::move(ret);
+    }
+
+    /// Creates capability holding OneValue container.
+    /// \tparam type ID of the internal data type.
+    /// \param cap Capability type.
+    /// \param value Initial value.
+    /// \throw std::bad_alloc
+    template<Type type>
+    static Capability createOneValue(CapType cap, const typename Detail::Twty<type>::Type& value = typename Detail::Twty<type>::Type()){
+        return createOneValue<type, typename Detail::Twty<type>::Type>(cap, value);
     }
 
     /// Creates capability holding OneValue container.
@@ -1211,7 +1221,7 @@ public:
     /// \param cap Capability type.
     /// \param size Number of elements in the array.
     /// \throw std::bad_alloc
-    template<Type type, typename DataType = typename Detail::Twty<type>::Type>
+    template<Type type, typename DataType>
     static Capability createArray(CapType cap, UInt32 size){
         Capability ret(cap, ConType::Array, type, sizeof(Detail::ArrayData<DataType>) - sizeof(DataType) + size * sizeof(DataType));
         auto arr = ret.array<type, DataType>();
@@ -1221,11 +1231,21 @@ public:
 
     /// Creates capability holding Array container.
     /// \tparam type ID of the internal data type.
+    /// \param cap Capability type.
+    /// \param size Number of elements in the array.
+    /// \throw std::bad_alloc
+    template<Type type>
+    static Capability createArray(CapType cap, UInt32 size){
+        return createArray<type, typename Detail::Twty<type>::Type>(cap, size);
+    }
+
+    /// Creates capability holding Array container.
+    /// \tparam type ID of the internal data type.
     /// \tparam DataType Exported data type.
     /// \param cap Capability type.
     /// \param values Initial values in the array.
     /// \throw std::bad_alloc
-    template<Type type, typename DataType = typename Detail::Twty<type>::Type>
+    template<Type type, typename DataType>
     static Capability createArray(CapType cap, std::initializer_list<DataType> values){
         Capability ret = createArray<type, DataType>(cap, values.size());
         auto arr = ret.array<type, DataType>();
@@ -1237,6 +1257,16 @@ public:
         }
 
         return std::move(ret);
+    }
+
+    /// Creates capability holding Array container.
+    /// \tparam type ID of the internal data type.
+    /// \param cap Capability type.
+    /// \param values Initial values in the array.
+    /// \throw std::bad_alloc
+    template<Type type>
+    static Capability createArray(CapType cap, std::initializer_list<typename Detail::Twty<type>::Type> values){
+        return createArray<type, typename Detail::Twty<type>::Type>(cap, values);
     }
 
     /// Creates capability holding Array container.
@@ -1286,7 +1316,7 @@ public:
     /// \param currIndex Index of the currently selected item.
     /// \param defIndex Index of the default item.
     /// \throw std::bad_alloc
-    template<Type type, typename DataType = typename Detail::Twty<type>::Type>
+    template<Type type, typename DataType>
     static Capability createEnumeration(CapType cap, UInt32 size, UInt32 currIndex = 0, UInt32 defIndex = 0){
         Capability ret(cap, ConType::Enumeration, type, sizeof(Detail::EnumerationData<DataType>) - sizeof(DataType) + size * sizeof(DataType));
         auto enm = ret.enumeration<type, DataType>();
@@ -1298,13 +1328,25 @@ public:
 
     /// Creates capability holding Enumeration container.
     /// \tparam type ID of the internal data type.
+    /// \param cap Capability type.
+    /// \param size Number of elements in the array.
+    /// \param currIndex Index of the currently selected item.
+    /// \param defIndex Index of the default item.
+    /// \throw std::bad_alloc
+    template<Type type>
+    static Capability createEnumeration(CapType cap, UInt32 size, UInt32 currIndex = 0, UInt32 defIndex = 0){
+        return createEnumeration<type, typename Detail::Twty<type>::Type>(cap, size, currIndex, defIndex);
+    }
+
+    /// Creates capability holding Enumeration container.
+    /// \tparam type ID of the internal data type.
     /// \tparam DataType Exported data type.
     /// \param cap Capability type.
     /// \param values Initial values in the array.
     /// \param currIndex Index of the currently selected item.
     /// \param defIndex Index of the default item.
     /// \throw std::bad_alloc
-    template<Type type, typename DataType = typename Detail::Twty<type>::Type>
+    template<Type type, typename DataType>
     static Capability createEnumeration(CapType cap, std::initializer_list<DataType> values, UInt32 currIndex = 0, UInt32 defIndex = 0){
         Capability ret = createEnumeration<type, DataType>(cap, values.size(), currIndex, defIndex);
         auto enm = ret.enumeration<type, DataType>();
@@ -1316,6 +1358,18 @@ public:
         }
 
         return std::move(ret);
+    }
+
+    /// Creates capability holding Enumeration container.
+    /// \tparam type ID of the internal data type.
+    /// \param cap Capability type.
+    /// \param values Initial values in the array.
+    /// \param currIndex Index of the currently selected item.
+    /// \param defIndex Index of the default item.
+    /// \throw std::bad_alloc
+    template<Type type>
+    static Capability createEnumeration(CapType cap, std::initializer_list<typename Detail::Twty<type>::Type> values, UInt32 currIndex = 0, UInt32 defIndex = 0){
+        return createEnumeration<type, typename Detail::Twty<type>::Type>(cap, values, currIndex, defIndex);
     }
 
     /// Creates capability holding Enumeration container.
@@ -1375,7 +1429,7 @@ public:
     /// \param curr Current value.
     /// \param def Default value.
     /// \throw std::bad_alloc
-    template<Type type, typename DataType = typename Detail::Twty<type>::Type>
+    template<Type type, typename DataType>
     static Capability createRange(CapType cap, DataType min, DataType max, DataType step, DataType curr, DataType def){
         Capability ret(cap, ConType::Range, type, sizeof(Detail::OneValueData<DataType>));
         auto rng = ret.range<type, DataType>();
@@ -1385,6 +1439,27 @@ public:
         rng.setCurrentValue(curr);
         rng.setDefaultValue(def);
         return std::move(ret);
+    }
+
+    /// Creates capability holding Range container.
+    /// \tparam type ID of the internal data type.
+    /// \param cap Capability type.
+    /// \param min Minimal range value.
+    /// \param max Maximal range value.
+    /// \param step Size of a single step.
+    /// \param curr Current value.
+    /// \param def Default value.
+    /// \throw std::bad_alloc
+    template<Type type>
+    static Capability createRange(
+            CapType cap,
+            typename Detail::Twty<type>::Type min,
+            typename Detail::Twty<type>::Type max,
+            typename Detail::Twty<type>::Type step,
+            typename Detail::Twty<type>::Type curr,
+            typename Detail::Twty<type>::Type def
+    ){
+        return createRange<type, typename Detail::Twty<type>::Type>(cap, min, max, step, curr, def);
     }
 
     /// Creates capability holding Range container.
@@ -1461,9 +1536,19 @@ public:
     /// \throw DataException When there is no data.
     /// \throw ContainerException When container is not OneValue.
     /// \throw ItemTypeException When item type does not match.
-    template<Type type, typename DataType = typename Detail::Twty<type>::Type>
+    template<Type type, typename DataType>
     OneValue<type, DataType> oneValue(){
         return containerCheck<OneValue, type, DataType>();
+    }
+
+    /// Contained OneValue container.
+    /// \tparam type ID of the internal data type.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not OneValue.
+    /// \throw ItemTypeException When item type does not match.
+    template<Type type>
+    OneValue<type, typename Detail::Twty<type>::Type> oneValue(){
+        return oneValue<type, typename Detail::Twty<type>::Type>();
     }
 
     /// Contained OneValue container.
@@ -1473,7 +1558,7 @@ public:
     /// \throw ItemTypeException When item type does not match.
     template<typename T>
     OneValue<Detail::Tytw<T>::twty, T> oneValue(){
-        return containerCheck<OneValue, Detail::Tytw<T>::twty, T>();
+        return oneValue<Detail::Tytw<T>::twty, T>();
     }
 
     /// Contained OneValue container.
@@ -1492,9 +1577,19 @@ public:
     /// \throw DataException When there is no data.
     /// \throw ContainerException When container is not Array.
     /// \throw ItemTypeException When item type does not match.
-    template<Type type, typename DataType = typename Detail::Twty<type>::Type>
+    template<Type type, typename DataType>
     Array<type, DataType> array(){
         return containerCheck<Array, type, DataType>();
+    }
+
+    /// Contained Array container.
+    /// \tparam type ID of the internal data type.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not Array.
+    /// \throw ItemTypeException When item type does not match.
+    template<Type type>
+    Array<type, typename Detail::Twty<type>::Type> array(){
+        return array<type, typename Detail::Twty<type>::Type>();
     }
 
     /// Contained Array container.
@@ -1504,7 +1599,7 @@ public:
     /// \throw ItemTypeException When item type does not match.
     template<typename T>
     Array<Detail::Tytw<T>::twty, T> array(){
-        return containerCheck<Array, Detail::Tytw<T>::twty, T>();
+        return array<Detail::Tytw<T>::twty, T>();
     }
 
     /// Contained Array container.
@@ -1523,9 +1618,19 @@ public:
     /// \throw DataException When there is no data.
     /// \throw ContainerException When container is not Enumeration.
     /// \throw ItemTypeException When item type does not match.
-    template<Type type, typename DataType = typename Detail::Twty<type>::Type>
+    template<Type type, typename DataType>
     Enumeration<type, DataType> enumeration(){
         return containerCheck<Enumeration, type, DataType>();
+    }
+
+    /// Contained Enumeration container.
+    /// \tparam type ID of the internal data type.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not Enumeration.
+    /// \throw ItemTypeException When item type does not match.
+    template<Type type>
+    Enumeration<type, typename Detail::Twty<type>::Type> enumeration(){
+        return enumeration<type, typename Detail::Twty<type>::Type>();
     }
 
     /// Contained Enumeration container.
@@ -1535,7 +1640,7 @@ public:
     /// \throw ItemTypeException When item type does not match.
     template<typename T>
     Enumeration<Detail::Tytw<T>::twty, T> enumeration(){
-        return containerCheck<Enumeration, Detail::Tytw<T>::twty, T>();
+        return enumeration<Detail::Tytw<T>::twty, T>();
     }
 
     /// Contained Enumeration container.
@@ -1554,9 +1659,19 @@ public:
     /// \throw DataException When there is no data.
     /// \throw ContainerException When container is not Enumeration.
     /// \throw ItemTypeException When item type does not match.
-    template<Type type, typename DataType = typename Detail::Twty<type>::Type>
+    template<Type type, typename DataType>
     Range<type, DataType> range(){
         return containerCheck<Range, type, DataType>();
+    }
+
+    /// Contained Range container.
+    /// \tparam type ID of the internal data type.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not Enumeration.
+    /// \throw ItemTypeException When item type does not match.
+    template<Type type>
+    Range<type, typename Detail::Twty<type>::Type> range(){
+        return range<type, typename Detail::Twty<type>::Type>();
     }
 
     /// Contained Range container.
@@ -1566,7 +1681,7 @@ public:
     /// \throw ItemTypeException When item type does not match.
     template<typename T>
     Range<Detail::Tytw<T>::twty, T> range(){
-        return containerCheck<Range, Detail::Tytw<T>::twty, T>();
+        return range<Detail::Tytw<T>::twty, T>();
     }
 
     /// Contained Range container.
@@ -1589,8 +1704,19 @@ public:
     /// \throw DataException When there is no data.
     /// \throw ContainerException When container is invalid.
     /// \throw ItemTypeException When item type does not match.
-    template<Type type, typename DataType = typename Detail::Twty<type>::Type>
+    template<Type type, typename DataType>
     Data<type, DataType> data() const{
+        return *this;
+    }
+
+    /// Returns a data container for iterating over all possible values.
+    /// Use this only if you don't care about current or default values and container type.
+    /// \tparam type ID of the internal data type.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is invalid.
+    /// \throw ItemTypeException When item type does not match.
+    template<Type type>
+    Data<type, typename Detail::Twty<type>::Type> data() const{
         return *this;
     }
 
@@ -1624,7 +1750,7 @@ public:
     /// \throw DataException When there is no data.
     /// \throw ContainerException When container is not Enumeration or OneValue.
     /// \throw ItemTypeException When item type does not match.
-    template<Type type, typename DataType = typename Detail::Twty<type>::Type>
+    template<Type type, typename DataType>
     DataType currentItem(){
         switch (m_conType){
             case ConType::Enumeration:
@@ -1636,6 +1762,17 @@ public:
             default:
                 throw ContainerException();
         }
+    }
+
+    /// Returns a copy of the current item of this capability.
+    /// Can be used only with Enumeration and OneValue containers.
+    /// \tparam type ID of the internal data type.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not Enumeration or OneValue.
+    /// \throw ItemTypeException When item type does not match.
+    template<Type type>
+    typename Detail::Twty<type>::Type currentItem(){
+        return currentItem<type, typename Detail::Twty<type>::Type>();
     }
 
     /// Returns a copy of the current item of this capability.

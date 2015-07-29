@@ -664,14 +664,14 @@ protected:
         /// \param data File system data.
         virtual Result fileSystem(const Identity& origin, Msg msg, FileSystem& data){
             switch (msg){
-                case Msg::AutomaticCaptureDirectory:
+                case Msg::AutomaticCaptureDir:
                     if (!inState(DsState::Open)){
                         return seqError();
                     }
 
                     return fileSystemAutomatic(origin, data);
 
-                case Msg::ChangeDirectory:
+                case Msg::ChangeDir:
                     if (!inState(DsState::Open)){
                         return seqError();
                     }
@@ -685,7 +685,7 @@ protected:
 
                     return fileSystemCopy(origin, data);
 
-                case Msg::CreateDirectory:
+                case Msg::CreateDir:
                     if (!inState(DsState::Open)){
                         return seqError();
                     }

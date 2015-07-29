@@ -200,12 +200,12 @@ public:
     }
 
     operator bool() const noexcept{
-        return m_handle;
+        return m_handle != DsmLibOs::Handle();
     }
 
     bool load(bool preferOld = false) noexcept{
         m_handle = DsmLibOs::load(preferOld);
-        return m_handle;
+        return m_handle != DsmLibOs::Handle();
     }
 
     void unload() noexcept{

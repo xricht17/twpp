@@ -59,43 +59,33 @@ public:
     };
 
     /// Creates event with only type and device name set.
-    static constexpr DeviceEvent simple(Type type, const Str255& deviceName) noexcept{
-        return DeviceEvent(type, deviceName, 0, 0, PowerSupply::External, Fix32(), Fix32(), Flash::None, 0, 0, 0);
-    }
+    static constexpr DeviceEvent simple(Type type, const Str255& deviceName) noexcept;
 
     /// Creates event for checking battery.
     static constexpr DeviceEvent checkBattery(
             const Str255& deviceName,
             UInt32 batteryMinutes,
             Int16 batteryPercentage
-    ) noexcept{
-        return DeviceEvent(Type::CheckBattery, deviceName, batteryMinutes, batteryPercentage, PowerSupply::External, Fix32(), Fix32(), Flash::None, 0, 0, 0);
-    }
+    ) noexcept;
 
     /// Creates event for checking power supply.
     static constexpr DeviceEvent checkPowerSupply(
             const Str255& deviceName,
             PowerSupply powerSupply
-    ) noexcept{
-        return DeviceEvent(Type::CheckPowerSupply, deviceName, 0, 0, powerSupply, Fix32(), Fix32(), Flash::None, 0, 0, 0);
-    }
+    ) noexcept;
 
     /// Creates event for checking resolution.
     static constexpr DeviceEvent checkResolution(
             const Str255& deviceName,
             Fix32 xres,
             Fix32 yres
-    ) noexcept{
-        return DeviceEvent(Type::CheckResolution, deviceName, 0, 0, PowerSupply::External, xres, yres, Flash::None, 0, 0, 0);
-    }
+    ) noexcept;
 
     /// Creates event for checking flash settings.
     static constexpr DeviceEvent checkFlash(
             const Str255& deviceName,
             Flash flash
-    ) noexcept{
-        return DeviceEvent(Type::CheckFlash, deviceName, 0, 0, PowerSupply::External, Fix32(), Fix32(), flash, 0, 0, 0);
-    }
+    ) noexcept;
 
     /// Creates event for checking number of images camera is going to capture.
     static constexpr DeviceEvent checkAutomaticCapture(
@@ -103,10 +93,7 @@ public:
             UInt32 autoCapture,
             UInt32 timeBeforeFirstCapture,
             UInt32 timeBetweenCaptures
-    ) noexcept{
-        return DeviceEvent(Type::CheckAutomaticCapture, deviceName, 0, 0, PowerSupply::External,
-                           Fix32(), Fix32(), Flash::None, autoCapture, timeBeforeFirstCapture, timeBetweenCaptures);
-    }
+    ) noexcept;
 
     /// Creates uninitialized deice event.
     constexpr DeviceEvent() noexcept :
@@ -213,6 +200,51 @@ private:
 
 };
 TWPP_DETAIL_PACK_END
+
+// must be defined outside the class because of msvc2015
+constexpr inline DeviceEvent DeviceEvent::simple(Type type, const Str255& deviceName) noexcept{
+    return DeviceEvent(type, deviceName, 0, 0, PowerSupply::External, Fix32(), Fix32(), Flash::None, 0, 0, 0);
+}
+
+constexpr inline DeviceEvent DeviceEvent::checkBattery(
+        const Str255& deviceName,
+        UInt32 batteryMinutes,
+        Int16 batteryPercentage
+) noexcept{
+    return DeviceEvent(Type::CheckBattery, deviceName, batteryMinutes, batteryPercentage, PowerSupply::External, Fix32(), Fix32(), Flash::None, 0, 0, 0);
+}
+
+constexpr inline DeviceEvent DeviceEvent::checkPowerSupply(
+        const Str255& deviceName,
+        PowerSupply powerSupply
+) noexcept{
+    return DeviceEvent(Type::CheckPowerSupply, deviceName, 0, 0, powerSupply, Fix32(), Fix32(), Flash::None, 0, 0, 0);
+}
+
+constexpr inline DeviceEvent DeviceEvent::checkResolution(
+        const Str255& deviceName,
+        Fix32 xres,
+        Fix32 yres
+) noexcept{
+    return DeviceEvent(Type::CheckResolution, deviceName, 0, 0, PowerSupply::External, xres, yres, Flash::None, 0, 0, 0);
+}
+
+constexpr inline DeviceEvent DeviceEvent::checkFlash(
+        const Str255& deviceName,
+        Flash flash
+) noexcept{
+    return DeviceEvent(Type::CheckFlash, deviceName, 0, 0, PowerSupply::External, Fix32(), Fix32(), flash, 0, 0, 0);
+}
+
+constexpr inline DeviceEvent DeviceEvent::checkAutomaticCapture(
+        const Str255& deviceName,
+        UInt32 autoCapture,
+        UInt32 timeBeforeFirstCapture,
+        UInt32 timeBetweenCaptures
+) noexcept{
+    return DeviceEvent(Type::CheckAutomaticCapture, deviceName, 0, 0, PowerSupply::External,
+                       Fix32(), Fix32(), Flash::None, autoCapture, timeBeforeFirstCapture, timeBetweenCaptures);
+}
 
 }
 

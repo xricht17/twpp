@@ -289,8 +289,20 @@ public:
     /// \tparam type ID of the internal data type.
     /// \tparam DataType Exported data type.
     /// \throw TypeException When types don't match.
-    template<Type type, typename DataType = typename Detail::Twty<type>::Type>
+    template<Type type, typename DataType>
     Items<DataType> items(){
+        if (type != m_itemType || (type != Type::Handle && typeSize(type) != sizeof(DataType))){
+            throw TypeException();
+        }
+
+        return itemsPriv<DataType>();
+    }
+
+    /// Returns items contained in this entry.
+    /// \tparam type ID of the internal data type.
+    /// \throw TypeException When types don't match.
+    template<Type type>
+    Items<typename Detail::Twty<type>::Type> items(){
         if (type != m_itemType){
             throw TypeException();
         }

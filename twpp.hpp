@@ -27,13 +27,7 @@ SOFTWARE.
 #ifndef TWPP_DETAIL_FILE_TWPP_HPP
 #define TWPP_DETAIL_FILE_TWPP_HPP
 
-#if __cplusplus < 201103L
-#   error "C++11 or later is required"
-#endif
-
-#if defined(TWPP_IS_DS) && defined(TWPP_IS_APP)
-#   error "make up your mind, either app, or ds, not both"
-#endif
+#include "twpp/env.hpp"
 
 #include <cstdint>
 #include <initializer_list>
@@ -51,10 +45,7 @@ SOFTWARE.
 #include <cstring>
 #include <array>
 
-#include "twpp/_fix_begin.hpp"
-
 #include "twpp/utils.hpp"
-#include "twpp/env.hpp"
 
 #include "twpp/types.hpp"
 #include "twpp/strings.hpp"
@@ -99,23 +90,21 @@ SOFTWARE.
 #   include "twpp/datasource.hpp"
 #endif
 
-#include "twpp/_fix_end.hpp"
-
 
 #if !defined(TWPP_NO_NOTES)
 #   if !defined(TWPP_IS_DS)
-#       pragma message "note: using APPLICATION version of TWPP library, define TWPP_IS_DS before including twpp.hpp if you want DATA SOURCE version"
+#       pragma message ("note: using APPLICATION version of TWPP library, define TWPP_IS_DS before including twpp.hpp if you want DATA SOURCE version")
 #       if defined(TWPP_DETAIL_OS_WIN32)
-#           pragma message "note: place the following into your module-definition (.def) file: EXPORTS DS_Entry @1"
+#           pragma message ("note: place the following into your module-definition (.def) file: EXPORTS DS_Entry @1")
 #       endif
 #   else
-#       pragma message "note: using DATA SOURCE version of TWPP library, undefine TWPP_IS_DS if you want APPLICATION version"
-#       pragma message "note: make sure to place TWPP_ENTRY(<your-source-class-type>) macro in exactly one source file"
+#       pragma message ("note: using DATA SOURCE version of TWPP library, undefine TWPP_IS_DS if you want APPLICATION version")
+#       pragma message ("note: make sure to place TWPP_ENTRY(<your-source-class-type>) macro in exactly one source file")
 #   endif
 #   if defined(TWPP_DETAIL_OS_MAC)
 #       pragma message "warning: Str32, Str64, Str128 and Str255 are not null-terminated"
 #   endif
-#   pragma message "note: to disable notes and warnings, define TWPP_NO_NOTES before including TWPP header"
+#   pragma message ("note: to disable notes and warnings, define TWPP_NO_NOTES before including TWPP header")
 #endif
 
 

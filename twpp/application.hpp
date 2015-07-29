@@ -251,7 +251,7 @@ public:
             return ReturnCode::Failure;
         }
 
-        bool usesCb = Static<void>::g_cbRefs.count(d()->m_srcId.id());
+        bool usesCb = Static<void>::g_cbRefs.count(d()->m_srcId.id()) > 0;
 
 #if defined(TWPP_DETAIL_OS_WIN)
         MSG msg;
@@ -310,7 +310,7 @@ public:
     /// Processes a single GUI event without blocking.
     /// Can be used on Windows instead of `waitReady()` to process a single GUI event.
     ReturnCode processEvent(MSG* event){
-        bool usesCb = Static<void>::g_cbRefs.count(d()->m_srcId.id());
+        bool usesCb = Static<void>::g_cbRefs.count(d()->m_srcId.id()) > 0;
 
         Event twEvent(event, Msg::Null);
         auto rc = dsm(DataGroup::Control, Dat::Event, Msg::ProcessEvent, twEvent);
@@ -838,7 +838,7 @@ public:
 
         d()->m_state = DsmState::Loaded;
         d()->m_entry = d()->m_lib.resolve();
-        bool resolved = d()->m_entry;
+        bool resolved = d()->m_entry != nullptr;
         if (!resolved){
             unload();
         }

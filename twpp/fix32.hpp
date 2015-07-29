@@ -98,7 +98,7 @@ public:
     }
 
     explicit constexpr operator float() const noexcept{
-        return toFloat();
+        return m_whole + m_frac / 65536.0f;
     }
 
     constexpr float toFloat() const noexcept{
