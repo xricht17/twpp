@@ -64,8 +64,12 @@ enum {
 #   else
 #       define TWPP_DETAIL_OS_WIN32 1
 #   endif
-#   define WIN32_LEAN_AND_MEAN
-#   define NOMINMAX
+#   if !defined(WIN32_LEAN_AND_MEAN)
+#       define WIN32_LEAN_AND_MEAN
+#   endif
+#   if !defined(NOMINMAX)
+#       define NOMINMAX
+#   endif
     extern "C" {
 #   include <windows.h>
     }
