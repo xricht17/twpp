@@ -33,10 +33,14 @@ namespace Twpp {
 
 namespace Detail {
 
-typedef Handle (TWPP_DETAIL_CALLSTYLE* MemAlloc)(UInt32 size);
-typedef void (TWPP_DETAIL_CALLSTYLE* MemFree)(Handle handle);
-typedef void* (TWPP_DETAIL_CALLSTYLE* MemLock)(Handle handle);
-typedef void (TWPP_DETAIL_CALLSTYLE* MemUnlock)(Handle handle);
+extern "C" {
+
+typedef Handle::Raw (TWPP_DETAIL_CALLSTYLE* MemAlloc)(UInt32 size);
+typedef void (TWPP_DETAIL_CALLSTYLE* MemFree)(Handle::Raw handle);
+typedef void* (TWPP_DETAIL_CALLSTYLE* MemLock)(Handle::Raw handle);
+typedef void (TWPP_DETAIL_CALLSTYLE* MemUnlock)(Handle::Raw handle);
+
+}
 
 // templates behave as if they were defined in at most one module
 // ideal for storing static data
@@ -44,35 +48,35 @@ template<typename Dummy>
 struct GlobalMemFuncs {
 
 #if defined(TWPP_DETAIL_OS_WIN)
-    static Handle TWPP_DETAIL_CALLSTYLE defAlloc(UInt32 size){
-        return Handle(::GlobalAlloc(GHND, size));
+    static Handle::Raw TWPP_DETAIL_CALLSTYLE defAlloc(UInt32 size){
+        return ::GlobalAlloc(GHND, size);
     }
 
-    static void TWPP_DETAIL_CALLSTYLE defFree(Handle handle){
-        ::GlobalFree(handle.raw());
+    static void TWPP_DETAIL_CALLSTYLE defFree(Handle::Raw handle){
+        ::GlobalFree(handle);
     }
 
-    static void* TWPP_DETAIL_CALLSTYLE defLock(Handle handle){
-        return ::GlobalLock(handle.raw());
+    static void* TWPP_DETAIL_CALLSTYLE defLock(Handle::Raw handle){
+        return ::GlobalLock(handle);
     }
 
-    static void TWPP_DETAIL_CALLSTYLE defUnlock(Handle handle){
-        ::GlobalUnlock(handle.raw());
+    static void TWPP_DETAIL_CALLSTYLE defUnlock(Handle::Raw handle){
+        ::GlobalUnlock(handle);
     }
 #elif defined(TWPP_DETAIL_OS_MAC)
-    static Handle TWPP_DETAIL_CALLSTYLE defAlloc(UInt32 size){
-        return Handle(::NewHandle(size));
+    static Handle::Raw TWPP_DETAIL_CALLSTYLE defAlloc(UInt32 size){
+        return ::NewHandle(size);
     }
 
-    static void TWPP_DETAIL_CALLSTYLE defFree(Handle handle){
-        ::DisposeHandle(handle.raw());
+    static void TWPP_DETAIL_CALLSTYLE defFree(Handle::Raw handle){
+        ::DisposeHandle(handle);
     }
 
-    static void* TWPP_DETAIL_CALLSTYLE defLock(Handle handle){
-        return *handle.raw();
+    static void* TWPP_DETAIL_CALLSTYLE defLock(Handle::Raw handle){
+        return *handle;
     }
 
-    static void TWPP_DETAIL_CALLSTYLE defUnlock(Handle handle){
+    static void TWPP_DETAIL_CALLSTYLE defUnlock(Handle::Raw handle){
         // noop
     }
 #endif // Linux doesnt need default functions
@@ -127,24 +131,24 @@ inline static void resetMemFuncs() noexcept{
 }
 
 inline static Handle alloc(UInt32 size){
-    Handle h = GlobalMemFuncs<void>::alloc(size);
+    auto h = GlobalMemFuncs<void>::alloc(size);
     if (!h){
         throw std::bad_alloc();
     }
 
-    return h;
+    return Handle(h);
 }
 
 inline static void* lock(Handle handle) noexcept{
-    return GlobalMemFuncs<void>::lock(handle);
+    return GlobalMemFuncs<void>::lock(handle.raw());
 }
 
 inline static void unlock(Handle handle) noexcept{
-    GlobalMemFuncs<void>::unlock(handle);
+    GlobalMemFuncs<void>::unlock(handle.raw());
 }
 
 inline static void free(Handle handle) noexcept{
-    GlobalMemFuncs<void>::free(handle);
+    GlobalMemFuncs<void>::free(handle.raw());
 }
 
 template<typename T>
