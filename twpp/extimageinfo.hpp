@@ -307,7 +307,7 @@ public:
             throw TypeException();
         }
 
-        return itemsPriv<DataType>();
+        return itemsPriv<typename Detail::Twty<type>::Type>();
     }
 
     /// Returns items contained in this entry.
