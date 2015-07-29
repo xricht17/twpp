@@ -1118,6 +1118,29 @@ public:
 
 };
 
+
+/// Capability current item implementation.
+/// The default implementation is designed for non-numeric values.
+/// Meaning it can't handle ranges.
+template<Type type, typename DataType, bool isNumeric> // false
+struct CurrentItemImpl {
+    static DataType item(Capability& cap);
+};
+
+/// Capability current item implementation.
+/// This specialization can handles numeric values only.
+/// Ranges included.
+template<Type type, typename DataType>
+struct CurrentItemImpl<type, DataType, true> {
+    static DataType item(Capability& cap);
+};
+
+/// Capability current item.
+template<Type type, typename DataType>
+struct CurrentItem : CurrentItemImpl<type, DataType, IsNumeric<DataType>::value> {
+
+};
+
 }
 
 /// Base capability exception.
@@ -1744,31 +1767,22 @@ public:
 
 
     /// Returns a copy of the current item of this capability.
-    /// Can be used only with Enumeration and OneValue containers.
+    /// Can be used only with Enumeration, OneValue, and Range containers.
     /// \tparam type ID of the internal data type.
     /// \tparam DataType Exported data type.
     /// \throw DataException When there is no data.
-    /// \throw ContainerException When container is not Enumeration or OneValue.
+    /// \throw ContainerException When container is not Enumeration, OneValue, nor Range.
     /// \throw ItemTypeException When item type does not match.
     template<Type type, typename DataType>
     DataType currentItem(){
-        switch (m_conType){
-            case ConType::Enumeration:
-                return enumeration<type, DataType>().currentItem();
-
-            case ConType::OneValue:
-                return oneValue<type, DataType>().item();
-
-            default:
-                throw ContainerException();
-        }
+        return Detail::CurrentItem<type, DataType>::item(*this);
     }
 
     /// Returns a copy of the current item of this capability.
-    /// Can be used only with Enumeration and OneValue containers.
+    /// Can be used only with Enumeration, OneValue, and Range containers.
     /// \tparam type ID of the internal data type.
     /// \throw DataException When there is no data.
-    /// \throw ContainerException When container is not Enumeration or OneValue.
+    /// \throw ContainerException When container is not Enumeration, OneValue, nor Range.
     /// \throw ItemTypeException When item type does not match.
     template<Type type>
     typename Detail::Twty<type>::Type currentItem(){
@@ -1776,10 +1790,10 @@ public:
     }
 
     /// Returns a copy of the current item of this capability.
-    /// Can be used only with Enumeration and OneValue containers.
+    /// Can be used only with Enumeration, OneValue, and Range containers.
     /// \tparam T Data type.
     /// \throw DataException When there is no data.
-    /// \throw ContainerException When container is not Enumeration or OneValue.
+    /// \throw ContainerException When container is not Enumeration, OneValue, nor Range.
     /// \throw ItemTypeException When item type does not match.
     template<typename T>
     T currentItem(){
@@ -1787,10 +1801,10 @@ public:
     }
 
     /// Returns a copy of the current item of this capability.
-    /// Can be used only with Enumeration and OneValue containers.
+    /// Can be used only with Enumeration, OneValue, and Range containers.
     /// \tparam cap Capability type. Data types are set accordingly.
     /// \throw DataException When there is no data.
-    /// \throw ContainerException When container is not Enumeration or OneValue.
+    /// \throw ContainerException When container is not Enumeration, OneValue, nor Range.
     /// \throw ItemTypeException When item type does not match.
     template<CapType cap>
     typename Detail::Cap<cap>::DataType currentItem(){
@@ -1820,7 +1834,7 @@ private:
             throw ContainerException();
         }
 
-        Container<type, DataType> ret(m_cont.get());        
+        Container<type, DataType> ret(m_cont.get());
         if (type != ret.type()){
             throw ItemTypeException();
         }
@@ -1892,6 +1906,43 @@ inline CapDataImpl<type, true, DataType>::CapDataImpl(const Capability& cap) :
 
     if (type != cap.itemType()){
         throw ItemTypeException();
+    }
+}
+
+/// \throw DataException
+/// \throw ContainerException
+/// \throw ItemTypeException
+template<Type type, typename DataType, bool isNumeric> // false
+DataType CurrentItemImpl<type, DataType, isNumeric>::item(Capability& cap){
+    switch (cap.container()){
+        case ConType::Enumeration:
+            return cap.enumeration<type, DataType>().currentItem();
+
+        case ConType::OneValue:
+            return cap.oneValue<type, DataType>().item();
+
+        default:
+            throw ContainerException();
+    }
+}
+
+/// \throw DataException
+/// \throw ContainerException
+/// \throw ItemTypeException
+template<Type type, typename DataType>
+DataType CurrentItemImpl<type, DataType, true>::item(Capability& cap){
+    switch (cap.container()){
+        case ConType::Enumeration:
+            return cap.enumeration<type, DataType>().currentItem();
+
+        case ConType::OneValue:
+            return cap.oneValue<type, DataType>().item();
+
+        case ConType::Range:
+            return cap.range<type, DataType>().currentValue();
+
+        default:
+            throw ContainerException();
     }
 }
 
