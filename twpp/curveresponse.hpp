@@ -50,10 +50,10 @@ public:
             throw RangeException();
         }
 
-        std::size_t size = 1 << bitsPerPixel;
+        UInt16 size = 1 << static_cast<UInt16>(bitsPerPixel);
         m_data.reset(new Element8[size]);
-        for (std::size_t i = 0; i < size; i++){
-            m_data[i] = Element8(i);
+        for (UInt16 i = 0; i < size; i++){
+            m_data[i] = Element8(static_cast<UInt8>(i)); // 0..255 max
         }
     }
 

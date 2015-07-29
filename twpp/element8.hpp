@@ -42,7 +42,7 @@ public:
         m_index(0), m_channel1(0), m_channel2(0), m_channel3(0){}
 
     /// Creates zero-initialized element with specified index.
-    explicit constexpr Element8(UInt16 index) noexcept :
+    explicit constexpr Element8(UInt8 index) noexcept :
         m_index(index), m_channel1(0), m_channel2(0), m_channel3(0){}
 
     /// Creates element with set channels.
