@@ -247,12 +247,10 @@ template<std::size_t sizeA, std::size_t sizeB>
 constexpr bool operator==(const Detail::Str<sizeA>& a, const Detail::Str<sizeB>& b) noexcept{
     // length() is O(1) on mac os, O(n) anywhere else
 #if defined(TWPP_DETAIL_OS_MAC)
-    if (a.length() != b.length()){
-        return false;
-    }
-#endif
-
+    return a.length() == b.length() && Detail::strCmp(a.data(), b.data()) == 0;
+#else
     return Detail::strCmp(a.data(), b.data()) == 0;
+#endif
 }
 
 template<std::size_t sizeA, std::size_t sizeB>
