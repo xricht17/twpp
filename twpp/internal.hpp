@@ -173,7 +173,7 @@ class DsmLib {
 
 public:
     constexpr DsmLib() noexcept :
-        m_handle(){}
+        m_handle(DsmLibOs::nullHandle){}
 
     ~DsmLib(){
         unload();
@@ -211,6 +211,7 @@ public:
     void unload() noexcept{
         if (m_handle != DsmLibOs::nullHandle){
             DsmLibOs::unload(m_handle);
+            m_handle = DsmLibOs::nullHandle;
         }
     }
 
