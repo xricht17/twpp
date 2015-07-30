@@ -109,7 +109,7 @@ public:
     }
 
     /// Sets samples per single pixel.
-    void samplesPerPixel(Int16 spp) noexcept{
+    void setSamplesPerPixel(Int16 spp) noexcept{
         m_spp = spp;
     }
 
