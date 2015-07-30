@@ -201,10 +201,74 @@ template<> struct Cap<CapType::UiControllable> {static constexpr const Type twty
 template<> struct Cap<CapType::XferCount> {static constexpr const Type twty = Type::Int16; typedef Int16 DataType;};
 
 TWPP_DETAIL_PACK_BEGIN
+// certain apps assume that size of OneValue item is always at least 4 bytes
+// add padding that extends the sign of signed integers
+// and pads with zeroes for unsigned integers
+// all other cases use their data types directly
+template<typename DataType, bool isSmall, bool/* isSigned*/> // false, any
+struct OneValueProxy {
+    OneValueProxy& operator=(const DataType& value) noexcept{
+        m_data = value;
+        return *this;
+    }
+
+    operator const DataType&() const noexcept{
+        return m_data;
+    }
+
+    operator DataType&() noexcept{
+        return m_data;
+    }
+
+    DataType m_data;
+};
+
+template<typename DataType>
+struct OneValueProxy<DataType, true, true> {
+    OneValueProxy& operator=(DataType value) noexcept{
+        m_signed = static_cast<Int32>(value);
+        return *this;
+    }
+
+    operator DataType() const noexcept{
+        return m_data;
+    }
+
+    operator DataType&() noexcept{
+        return m_data;
+    }
+
+    union {
+        DataType m_data;
+        Int32 m_signed;
+    };
+};
+
+template<typename DataType>
+struct OneValueProxy<DataType, true, false> {
+    OneValueProxy& operator=(DataType value) noexcept{
+        m_unsigned = static_cast<UInt32>(value);
+        return *this;
+    }
+
+    operator DataType() const noexcept{
+        return m_data;
+    }
+
+    operator DataType&() noexcept{
+        return m_data;
+    }
+
+    union {
+        DataType m_data;
+        UInt32 m_unsigned;
+    };
+};
+
 template<typename DataType>
 struct OneValueData {
     Type m_itemType;
-    DataType m_item;
+    OneValueProxy<DataType, sizeof(DataType) < sizeof(UInt32), std::is_signed<DataType>::value> m_item;
 };
 
 template<typename DataType>
@@ -223,26 +287,46 @@ struct EnumerationData {
     DataType m_items[1];
 };
 
+// Range items are always 4 bytes large,
+// add padding for smaller data types
 template<typename DataType>
 struct RangeProxy {
+    typedef typename std::conditional<
+        std::is_signed<DataType>::value, Int32, UInt32
+    >::type InnerType;
+
     RangeProxy& operator=(DataType value) noexcept{
-        *reinterpret_cast<DataType*>(m_data) = value;
+        m_data = value;
         return *this;
     }
 
     operator DataType() const noexcept{
-        return *pointer();
+        return static_cast<DataType>(m_data);
     }
 
-    const DataType* pointer() const noexcept{
-        return reinterpret_cast<const DataType*>(m_data);
+    operator DataType&() noexcept{
+        return *alias_cast<DataType*>(&m_data);
     }
 
-    DataType* pointer() noexcept{
-        return reinterpret_cast<DataType*>(m_data);
+    InnerType m_data;
+};
+
+template<>
+struct RangeProxy<Fix32> {
+    RangeProxy& operator=(Fix32 value) noexcept{
+        m_data = value;
+        return *this;
     }
 
-    char m_data[sizeof(UInt32)];
+    operator Fix32() const noexcept{
+        return m_data;
+    }
+
+    operator Fix32&() noexcept{
+        return m_data;
+    }
+
+    Fix32 m_data;
 };
 
 template<typename DataType>
