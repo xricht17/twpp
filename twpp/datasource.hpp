@@ -404,12 +404,20 @@ protected:
                         return seqError();
                     }
 
+                    if (!data){
+                        return badValue();
+                    }
+
                     return capabilitySet(origin, data);
 
                 case Msg::SetConstraint:
                     // 4, extended: 5, 6, 7
                     if (!inState(DsState::Open)){
                         return seqError();
+                    }
+
+                    if (!data){
+                        return badValue();
                     }
 
                     return capabilitySetConstraint(origin, data);
@@ -1158,7 +1166,7 @@ protected:
                         return seqError();
                     }
 
-                    rc = userInterfaceDisable(origin, data);
+                    rc = userInterfaceEnableUiOnly(origin, data);
                     if (Twpp::success(rc)){
                         setState(DsState::Enabled);
                     }
