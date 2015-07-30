@@ -92,6 +92,14 @@ private:
 };
 TWPP_DETAIL_PACK_END
 
+static constexpr inline bool operator==(const Frame& a, const Frame& b) noexcept{
+    return a.left() == b.left() && a.top() == b.top() && a.right() == b.right() && a.bottom() == b.bottom();
+}
+
+static constexpr inline bool operator!=(const Frame& a, const Frame& b) noexcept{
+    return !(a == b);
+}
+
 }
 
 #endif // TWPP_DETAIL_FILE_FRAME_HPP
