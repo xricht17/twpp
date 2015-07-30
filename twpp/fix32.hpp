@@ -33,24 +33,20 @@ namespace Twpp {
 
 namespace Detail {
 
-static constexpr inline Int16 floatToWhole(float val){
-    return static_cast<Int16>(
-        static_cast<Int32>(
-            (val >= 0.0f) ?
-            (val * 65536.0f + 0.5f) :
-            (val * 65536.0f)
-        ) >> 16
+static constexpr inline Int32 floatToValue(float val){
+    return static_cast<Int32>(
+        (val >= 0.0f) ?
+        (val * 65536.0f + 0.5f) :
+        (val * 65536.0f - 0.5f)
     );
 }
 
+static constexpr inline Int16 floatToWhole(float val){
+    return static_cast<Int16>(floatToValue(val) >> 16);
+}
+
 static constexpr inline UInt16 floatToFrac(float val){
-    return static_cast<UInt16>(
-        static_cast<Int32>(
-            (val >= 0.0f) ?
-            (val * 65536.0f + 0.5f) :
-            (val * 65536.0f)
-        ) & 0xFFFF
-    );
+    return static_cast<UInt16>(floatToValue(val) & 0xFFFF);
 }
 
 }
