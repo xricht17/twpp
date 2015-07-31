@@ -56,6 +56,7 @@ struct SourceData {
         m_mgr(mgr), m_srcId(srcIdent){}
 
     ManagerData* m_mgr;
+    std::function<void()> m_devEvent;
     Handle m_uiHandle;
     Identity m_srcId;
     DsState m_state = DsState::Closed;
@@ -86,6 +87,8 @@ class Source {
     friend class Manager;
 
 public:
+    typedef std::function<void()> EventCallBack;
+
     /// Creates an invalid source.
     /// Calling any method on such source results in
     /// undefined behaviour, and possibly segfault.
@@ -160,6 +163,15 @@ public:
     /// Identity of the source.
     const Identity& identity() const noexcept{
         return d()->m_srcId;
+    }
+
+    /// Sets function (object) to receive device event notifications.
+    ///
+    /// {In state 5 (enabled), the function should only set a flag and return immediately.
+    /// `waitReady()` then returns CheckStatus, and the device event may be processed in
+    /// the main thread. Call `waitReady()` again once you are done.}
+    void setEventCallBack(EventCallBack devEvent){
+        d()->m_devEvent = std::move(devEvent);
     }
 
 
@@ -245,7 +257,9 @@ public:
     /// The state is moved to XferReady, when Success is returned, and the source is enabled with full UI (uiOnly = false).
     /// On Windows, call this method from the main thread, GUI events are processed here.
     /// On Linux and Mac Os, this method may be called from any thread, GUI events are NOT processed.
-    /// \return Failure on error, Cancel on CANCEL button, Success on SAVE or SCAN button.
+    /// Call this again after processing device event.
+    /// \return {Failure on error, Cancel on CANCEL button, Success on SAVE or SCAN button,
+    ///          CheckStatus on device event.}
     ReturnCode waitReady(){
         if (d()->m_state != DsState::Enabled){
             return ReturnCode::Failure;
@@ -301,6 +315,10 @@ public:
             case Msg::CloseDsReq: // cancel button
                 return ReturnCode::Cancel;
 
+            case Msg::DeviceEvent:
+                d()->m_readyMsg = Msg::Null;
+                return ReturnCode::CheckStatus;
+
             default:
                 return ReturnCode::Failure;
         }
@@ -309,6 +327,8 @@ public:
 #if defined(TWPP_DETAIL_OS_WIN)
     /// Processes a single GUI event without blocking.
     /// Can be used on Windows instead of `waitReady()` to process a single GUI event.
+    /// \return {Failure on error, Cancel on CANCEL button, Success on SAVE or SCAN button,
+    ///          CheckStatus on device event. Also NotDsEvent or DsEvent on unknown DS message.}
     ReturnCode processEvent(MSG* event){
         bool usesCb = Static<void>::g_cbRefs.count(d()->m_srcId.id()) > 0;
 
@@ -330,6 +350,10 @@ public:
 
                     case Msg::CloseDsReq: // cancel button
                         return ReturnCode::Cancel;
+
+                    case Msg::DeviceEvent:
+                        d()->m_readyMsg = Msg::Null;
+                        return ReturnCode::CheckStatus;
 
                     default:
                         break;
@@ -732,37 +756,40 @@ private:
             Msg msg,
             void* data
     ) noexcept{
-        switch (msg){
-            case Msg::XferReady:
-            case Msg::CloseDsOk:
-            case Msg::CloseDsReq:
-            case Msg::Null: {
-                auto& refs = Static<void>::g_cbRefs;
-                auto it = refs.find(*Detail::alias_cast<Identity::Id*>(&data));
-                if (it == refs.end()){
-                    return ReturnCode::Failure;
-                }
+        auto& refs = Static<void>::g_cbRefs;
+        auto it = refs.find(*Detail::alias_cast<Identity::Id*>(&data));
+        if (it == refs.end()){
+            return ReturnCode::Failure;
+        }
 
-                Detail::SourceData* src = it->second;
+        Detail::SourceData* src = it->second;
+
 #if !defined(TWPP_DETAIL_OS_WIN)
-                std::unique_lock<std::mutex> lock(src->m_cbMutex);
-                Detail::unused(lock);
+        std::unique_lock<std::mutex> lock(src->m_cbMutex);
+        if (src->m_state != DsState::Enabled){
+            lock.unlock();
+        }
 #endif
-
-                src->m_readyMsg = msg;
-
-#if defined(TWPP_DETAIL_OS_WIN)
-                PostMessageA(static_cast<HWND>(src->m_mgr->m_rootWindow.raw()), WM_NULL, 0, 0);
-#else
-                src->m_cbCond.notify_one();
-#endif
-
-                return ReturnCode::Success;
+        if (msg == Msg::DeviceEvent){
+            if (!src->m_devEvent){
+                return ReturnCode::Failure;
             }
 
-            default:
-                return ReturnCode::Failure;
+            src->m_devEvent();
         }
+
+        if (src->m_state == DsState::Enabled){
+            src->m_readyMsg = msg;
+
+#if defined(TWPP_DETAIL_OS_WIN)
+            PostMessageA(static_cast<HWND>(src->m_mgr->m_rootWindow.raw()), WM_NULL, 0, 0);
+#else
+            src->m_cbCond.notify_one();
+#endif
+        }
+
+
+        return ReturnCode::Success;
     }
 
     std::unique_ptr<Detail::SourceData> m_data;
