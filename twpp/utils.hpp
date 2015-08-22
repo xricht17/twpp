@@ -33,6 +33,69 @@ namespace Twpp {
 
 namespace Detail {
 
+/// Creates a template for testing whether a class contains public static method.
+/// Use this macro anywhere a class may be defined, and pass method name
+/// as its parameter. Then use `HasStaticMethod_<your-method-name>` template.
+///
+/// E. g.:
+/// TWPP_DETAIL_CREATE_HAS_STATIC_METHOD(myMethod) // <- semicolon not required
+/// HasStaticMethod_myMethod<MyClass, void(int, char)>::value
+///
+/// This test whether `MyClass` has static method `void MyClass::myMethod(int, char)`.
+/// That is whether you may do this:
+/// MyClass::myMethod(10, 'a');
+#define TWPP_DETAIL_CREATE_HAS_STATIC_METHOD(methodName) \
+    template<typename T, typename Fn>\
+    class HasStaticMethod_ ## methodName;\
+    \
+    template<typename T, typename Ret, typename... Args>\
+    class HasStaticMethod_ ## methodName <T, Ret(Args...)> {\
+    \
+        template<typename U>\
+        static constexpr auto test(U*) ->\
+            typename std::is_same<decltype(U::methodName(std::declval<Args>()...)), Ret>::type;\
+    \
+        template<typename>\
+        static constexpr std::false_type test(...);\
+    \
+    public:\
+        typedef decltype(test<T>(0)) type;\
+        static constexpr const bool value = type::value;\
+    \
+    };
+
+/// Creates a template for testing whether a class contains public method.
+/// Use this macro anywhere a class may be defined, and pass method name
+/// as its parameter. Then use `HasMethod_<your-method-name>` template.
+///
+/// E. g.:
+/// TWPP_DETAIL_CREATE_HAS_METHOD(myMethod) // <- semicolon not required
+/// HasMethod_myMethod<MyClass, void(int, char)>::value
+///
+/// This test whether `MyClass` has method (AKA member function) `void MyClass::myMethod(int, char)`.
+/// That is whether you may do this:
+/// MyClass o ... ;
+/// o.myMethod(10, 'a');
+#define TWPP_DETAIL_CREATE_HAS_METHOD(methodName) \
+    template<typename T, typename Fn>\
+    class HasMethod_ ## methodName;\
+    \
+    template<typename T, typename Ret, typename... Args>\
+    class HasMethod_ ## methodName <T, Ret(Args...)> {\
+    \
+        template<typename U>\
+        static constexpr auto test(U*) ->\
+            typename std::is_same<decltype(std::declval<U>().methodName(std::declval<Args>()...)), Ret>::type;\
+    \
+        template<typename>\
+        static constexpr std::false_type test(...);\
+    \
+    public:\
+        typedef decltype(test<T>(0)) type;\
+        static constexpr const bool value = type::value;\
+    \
+    };
+
 /// Performs a pointer type cast, suppresses strict aliasing warnings.
 /// \tparam T Type of the returned pointer. Must be pointer type (e.g. `char*`).
 /// \param ptr Pointer to be cast.
