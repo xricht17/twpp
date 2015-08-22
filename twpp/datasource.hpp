@@ -105,6 +105,9 @@ struct StaticCustomBaseProc<Derived, true> {
     }
 };
 
+TWPP_DETAIL_CREATE_HAS_STATIC_METHOD(defaultIdentity)
+TWPP_DETAIL_CREATE_HAS_STATIC_METHOD(staticCustomBase)
+
 }
 
 namespace SourceFromThisProcs {
@@ -2028,6 +2031,9 @@ private:
                             return badValue();
                         }
 
+                        static_assert(Detail::HasStaticMethod_defaultIdentity<Derived, const Identity&()>::value,
+                                      "Your source class lacks `static const Identity& defaultIdentity()` method.");
+
                         auto& ident = *static_cast<Identity*>(data);
                         const Identity& def = Derived::defaultIdentity();
                         ident = Identity(ident.id(), def.version(), def.protocolMajor(),
@@ -2055,6 +2061,10 @@ private:
 
             default:
                 if (dat >= Dat::CustomBase){
+                    static_assert(Detail::HasStaticMethod_staticCustomBase<Derived, Result(Dat, Msg, void*)>::value ||
+                                  !hasStaticCustomBaseProc,
+                                  "Your source class lacks `static Result staticCustomBase(Dat, Msg, void*)` method.");
+
                     return Detail::StaticCustomBaseProc<Derived, hasStaticCustomBaseProc>()(dat, msg, data);
                 }
 
