@@ -81,9 +81,51 @@ enum {
 
     typedef HANDLE RawHandle;
 
+
+    namespace DsmLibOs {
+
+    typedef HMODULE Handle;
+    static constexpr const Handle nullHandle = nullptr;
+
+    template<typename T>
+    static inline T resolve(Handle h) noexcept{
+        return reinterpret_cast<T>(::GetProcAddress(h, "DSM_Entry"));
     }
 
+    static inline Handle load(bool old) noexcept{
+#   if defined(TWPP_DETAIL_OS_WIN32)
+        if (old){
+            auto h = ::LoadLibraryA("TWAIN_32.dll");
+            if (!h){
+                h = ::LoadLibraryA("TWAINDSM.dll");
+            }
+
+            return h;
+        }
+#   endif
+
+        auto h = ::LoadLibraryA("TWAINDSM.dll");
+
+#   if defined(TWPP_DETAIL_OS_WIN32)
+        if (!h){
+            h = ::LoadLibraryA("TWAIN_32.dll");
+        }
+#   else
+        unused(old);
+#   endif
+
+        return h;
     }
+
+    static inline void unload(Handle h) noexcept{
+        ::FreeLibrary(h);
+    }
+
+    } // namespace DsmLibOs
+
+    } // namespace Detail
+
+    } // namespace Twpp
 
 
 // Mac OS
@@ -106,9 +148,29 @@ enum {
 
     typedef Handle RawHandle;
 
+
+    namespace DsmLibOs {
+
+    typedef void* Handle;
+    static constexpr const Handle nullHandle = nullptr;
+
+    static inline DsmEntry resolve(Handle h) noexcept{
+        return reinterpret_cast<DsmEntry>(::dlsym(h, "DSM_Entry"));
     }
 
+    static inline Handle load(bool) noexcept{
+        return ::dlopen("/System/Library/Frameworks/TWAIN.framework/TWAIN", RTLD_LAZY);
     }
+
+    static inline void unload(Handle h) noexcept{
+        ::dlclose(h);
+    }
+
+    } // namespace DsmLibOs
+
+    } // namespace Detail
+
+    } // namespace Twpp
 
 // Linux
 #elif defined(__linux__)
@@ -124,9 +186,29 @@ enum {
 
     typedef void* RawHandle;
 
+
+    namespace DsmLibOs {
+
+    typedef void* Handle;
+    static constexpr const Handle nullHandle = nullptr;
+
+    static inline DsmEntry resolve(Handle h) noexcept{
+        return reinterpret_cast<DsmEntry>(::dlsym(h, "DSM_Entry"));
     }
 
+    static inline Handle load(bool) noexcept{
+        return ::dlopen("libtwaindsm.so", RTLD_LAZY);
     }
+
+    static inline void unload(Handle h) noexcept{
+        ::dlclose(h);
+    }
+
+    } // namespace DsmLibOs
+
+    } // namespace Detail
+
+    } // namespace Twpp
 
 // fail everything else
 #else

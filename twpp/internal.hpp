@@ -93,81 +93,6 @@ struct CallBack2 {
 };
 TWPP_DETAIL_PACK_END
 
-// stuff for handling DSM dll/so/framework
-namespace DsmLibOs {
-
-#if defined(TWPP_DETAIL_OS_WIN)
-    typedef HMODULE Handle;
-    static constexpr const Handle nullHandle = nullptr;
-
-    static inline DsmEntry resolve(Handle h) noexcept{
-        return reinterpret_cast<DsmEntry>(::GetProcAddress(h, "DSM_Entry"));
-    }
-
-    static inline Handle load(bool old) noexcept{
-#   if defined(TWPP_DETAIL_OS_WIN32)
-        if (old){
-            auto h = ::LoadLibraryA("TWAIN_32.dll");
-            if (!h){
-                h = ::LoadLibraryA("TWAINDSM.dll");
-            }
-
-            return h;
-        }
-#   endif
-
-        auto h = ::LoadLibraryA("TWAINDSM.dll");
-
-#   if defined(TWPP_DETAIL_OS_WIN32)
-        if (!h){
-            h = ::LoadLibraryA("TWAIN_32.dll");
-        }
-#   else
-        unused(old);
-#   endif
-
-        return h;
-    }
-
-    static inline void unload(Handle h) noexcept{
-        ::FreeLibrary(h);
-    }
-
-#elif defined(TWPP_DETAIL_OS_MAC)
-    typedef void* Handle;
-    static constexpr const Handle nullHandle = nullptr;
-
-    static inline DsmEntry resolve(Handle h) noexcept{
-        return reinterpret_cast<DsmEntry>(::dlsym(h, "DSM_Entry"));
-    }
-
-    static inline Handle load(bool) noexcept{
-        return ::dlopen("/System/Library/Frameworks/TWAIN.framework/TWAIN", RTLD_LAZY);
-    }
-
-    static inline void unload(Handle h) noexcept{
-        ::dlclose(h);
-    }
-
-#elif defined(TWPP_DETAIL_OS_LINUX)
-    typedef void* Handle;
-    static constexpr const Handle nullHandle = nullptr;
-
-    static inline DsmEntry resolve(Handle h) noexcept{
-        return reinterpret_cast<DsmEntry>(::dlsym(h, "DSM_Entry"));
-    }
-
-    static inline Handle load(bool) noexcept{
-        return ::dlopen("libtwaindsm.so", RTLD_LAZY);
-    }
-
-    static inline void unload(Handle h) noexcept{
-        ::dlclose(h);
-    }
-#endif
-
-}
-
 /// Manages DSM dll/so/framework connection.
 class DsmLib {
 
@@ -200,12 +125,12 @@ public:
     }
 
     operator bool() const noexcept{
-        return m_handle != DsmLibOs::Handle();
+        return m_handle != DsmLibOs::nullHandle;
     }
 
     bool load(bool preferOld = false) noexcept{
         m_handle = DsmLibOs::load(preferOld);
-        return m_handle != DsmLibOs::Handle();
+        return m_handle != DsmLibOs::nullHandle;
     }
 
     void unload() noexcept{
@@ -216,7 +141,7 @@ public:
     }
 
     DsmEntry resolve() const noexcept{
-        return DsmLibOs::resolve(m_handle);
+        return DsmLibOs::resolve<DsmEntry>(m_handle);
     }
 
 private:
