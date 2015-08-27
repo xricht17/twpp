@@ -413,6 +413,15 @@ public:
         return call(DataGroup::Control, msg, inOut);
     }
 
+    /// \throw CapTypeException When input capability type does not match the
+    ///                         capability type of this template class.
+    /// \throw CapItemTypeException When input capability item type does not match
+    ///                             the expected item type of the capability.
+    template<CapType cap>
+    ReturnCode capability(Msg msg, Cap<cap>& inOut){
+        return call(DataGroup::Control, msg, inOut);
+    }
+
     ReturnCode customData(Msg msg, CustomData& inOut){
         return call(DataGroup::Control, msg, inOut);
     }
@@ -532,6 +541,17 @@ public:
     // dg:: control follows
     ReturnCode call(DataGroup dg, Msg msg, Capability& data){
         return dsm(dg, Dat::Capability, msg, data);
+    }
+
+    /// \throw CapTypeException When input capability type does not match the
+    ///                         capability type of this template class.
+    /// \throw CapItemTypeException When input capability item type does not match
+    ///                             the expected item type of the capability.
+    template<CapType cap>
+    ReturnCode call(DataGroup dg, Msg msg, Cap<cap>& data){
+        auto rc = call(dg, msg, data.m_cap);
+        data.checkTypes();
+        return rc;
     }
 
     ReturnCode call(DataGroup dg, Msg msg, CustomData& data){

@@ -1933,6 +1933,262 @@ private:
 };
 TWPP_DETAIL_PACK_END
 
+/// Invalid, unsupported or mismatched item type identifier capability exception.
+/// Holds the Capability instance that caused the exception.
+class CapItemTypeException : public ItemTypeException {
+
+public:
+    CapItemTypeException(Capability cap) noexcept :
+        m_cap(std::move(cap)){}
+
+    CapItemTypeException(CapItemTypeException&&) = default;
+    CapItemTypeException& operator=(CapItemTypeException&&) = default;
+
+    CapItemTypeException(const CapItemTypeException&) = delete;
+    CapItemTypeException& operator=(const CapItemTypeException&) = delete;
+
+    Capability& capability() noexcept{
+        return m_cap;
+    }
+
+    const Capability& capability() const noexcept{
+        return m_cap;
+    }
+
+    virtual const char* what() const noexcept override{
+        return "Unexpected item type.";
+    }
+
+private:
+    Capability m_cap;
+
+};
+
+/// Invalid, unexpected, unmatched capability type.
+/// Holds the Capability instance that caused the exception.
+class CapTypeException : public CapabilityException {
+
+public:
+    CapTypeException(Capability cap) noexcept :
+        m_cap(std::move(cap)){}
+
+    CapTypeException(CapTypeException&&) = default;
+    CapTypeException& operator=(CapTypeException&&) = default;
+
+    CapTypeException(const CapTypeException&) = delete;
+    CapTypeException& operator=(const CapTypeException&) = delete;
+
+    Capability& capability() noexcept{
+        return m_cap;
+    }
+
+    const Capability& capability() const noexcept{
+        return m_cap;
+    }
+
+    virtual const char* what() const noexcept override{
+        return "Unexpected capability type.";
+    }
+
+private:
+    Capability m_cap;
+
+};
+
+class Source;
+
+/// Convenience Capability wrapper class.
+/// Guaranteed to contain the same capability type and item type
+/// throughout the whole lifetime.
+template<CapType cap>
+class Cap {
+
+    friend class Source;
+
+public:
+    typedef typename Detail::Cap<cap>::DataType DataType;
+    static constexpr const Type twty = Detail::Cap<cap>::twty;
+
+    /// Creates capability holding OneValue container.
+    /// \param value Initial value.
+    /// \throw std::bad_alloc
+    static Cap createOneValue(const DataType& value = DataType()){
+        return Cap(Capability::createOneValue<cap>(value), 0);
+    }
+
+
+    /// Creates capability holding Array container.
+    /// \param size Number of elements in the array.
+    /// \throw std::bad_alloc
+    static Cap createArray(UInt32 size){
+        return Cap(Capability::createArray<cap>(size), 0);
+    }
+
+    /// Creates capability holding Array container.
+    /// \param values Initial values in the array.
+    /// \throw std::bad_alloc
+    static Cap createArray(std::initializer_list<DataType> values){
+        return Cap(Capability::createArray<cap>(values), 0);
+    }
+
+
+    /// Creates capability holding Enumeration container.
+    /// \param size Number of elements in the array.
+    /// \param currIndex Index of the currently selected item.
+    /// \param defIndex Index of the default item.
+    /// \throw std::bad_alloc
+    static Cap createEnumeration(UInt32 size, UInt32 currIndex = 0, UInt32 defIndex = 0){
+        return Cap(Capability::createEnumeration<cap>(size, currIndex, defIndex), 0);
+    }
+
+    /// Creates capability holding Enumeration container.
+    /// \param values Initial values in the array.
+    /// \param currIndex Index of the currently selected item.
+    /// \param defIndex Index of the default item.
+    /// \throw std::bad_alloc
+    static Cap createEnumeration(std::initializer_list<DataType> values, UInt32 currIndex = 0, UInt32 defIndex = 0){
+        return Cap(Capability::createEnumeration<cap>(values, currIndex, defIndex), 0);
+    }
+
+
+    /// Creates capability holding Range container.
+    /// \param min Minimal range value.
+    /// \param max Maximal range value.
+    /// \param step Size of a single step.
+    /// \param curr Current value.
+    /// \param def Default value.
+    /// \throw std::bad_alloc
+    static Cap createRange(DataType min, DataType max, DataType step, DataType curr, DataType def){
+        return Cap(Capability::createRange<cap>(min, max, step, curr, def), 0);
+    }
+
+    /// Creates capability of the supplied type without any data.
+    /// Useful for retrieving data from data source.
+    Cap() noexcept : m_cap(cap){}
+
+    /// Converts Capability to Cap.
+    /// The capability ownership is taken over.
+    /// Capability type and item type checkings are performed. In case of exception,
+    /// the original Capability instance may be retrieved from the exception object.
+    /// \param capability Capability to be converted to Cap.
+    /// \throw CapTypeException When input capability type does not match the
+    ///                         capability type of this template class.
+    /// \throw CapItemTypeException When input capability item type does not match
+    ///                             the expected item type of the capability.
+    explicit Cap(Capability capability) :
+        m_cap(std::move(capability)){
+
+        checkTypes();
+    }
+
+    Cap(Cap&&) = default;
+    Cap& operator=(Cap&&) = default;
+
+    Cap(const Cap&) = delete;
+    Cap& operator=(const Cap&) = delete;
+
+    /// Capability type.
+    CapType type() const noexcept{
+        return m_cap.type();
+    }
+
+    /// Container type.
+    ConType container() const noexcept{
+        return m_cap.container();
+    }
+
+    /// Item type.
+    /// Valid only if the capability contains data.
+    /// \throw DataException When there is no data.
+    Type itemType() const{
+        return m_cap.itemType();
+    }
+
+    operator bool() const noexcept{
+        return m_cap;
+    }
+
+    /// Contained OneValue container.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not OneValue.
+    /// \throw ItemTypeException When item type does not match.
+    OneValue<twty, DataType> oneValue(){
+        return m_cap.oneValue<cap>();
+    }
+
+    /// Contained Array container.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not Array.
+    /// \throw ItemTypeException When item type does not match.
+    Array<twty, DataType> array(){
+        return m_cap.array<cap>();
+    }
+
+    /// Contained Enumeration container.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not Enumeration.
+    /// \throw ItemTypeException When item type does not match.
+    Enumeration<twty, DataType> enumeration(){
+        return m_cap.enumeration<cap>();
+    }
+
+    /// Contained Range container.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not Enumeration.
+    /// \throw ItemTypeException When item type does not match.
+    Range<twty, DataType> range(){
+        return m_cap.range<cap>();
+    }
+
+
+    typedef Detail::CapData<twty, DataType> Data;
+
+    /// Returns a data container for iterating over all possible values.
+    /// Use this only if you don't care about current or default values and container type.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is invalid.
+    /// \throw ItemTypeException When item type does not match.
+    Data data() const{
+        return m_cap.data<cap>();
+    }
+
+
+    /// Returns a copy of the current item of this capability.
+    /// Can be used only with Enumeration, OneValue, and Range containers.
+    /// \throw DataException When there is no data.
+    /// \throw ContainerException When container is not Enumeration, OneValue, nor Range.
+    /// \throw ItemTypeException When item type does not match.
+    DataType currentItem(){
+        return m_cap.currentItem<cap>();
+    }
+
+    /// Moves out the contained Capability instance.
+    /// This instance becomes empty.
+    Capability toCapability() noexcept{
+        return std::move(m_cap);
+    }
+
+private:
+    Cap(Capability capability, int) noexcept :
+        m_cap(std::move(capability)){}
+
+    void checkTypes(){
+        if (m_cap){
+            if (m_cap.type() != cap){
+                throw CapTypeException(std::move(m_cap));
+            }
+
+            if (m_cap.itemType() != twty){
+                throw CapItemTypeException(std::move(m_cap));
+            }
+        }
+    }
+
+    Capability m_cap;
+
+};
+
+
 namespace Detail {
 
 /// \throw DataException
