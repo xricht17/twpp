@@ -45,6 +45,7 @@ SOFTWARE.
 #include <cstring>
 #include <array>
 #include <utility>
+#include <cassert>
 
 #include "twpp/utils.hpp"
 

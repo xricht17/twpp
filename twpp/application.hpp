@@ -96,7 +96,7 @@ public:
     Source() noexcept{}
 
     ~Source(){
-        if (d()){
+        if (isValid()){
             cleanup();
         }
     }
@@ -104,7 +104,7 @@ public:
     Source(Source&&) = default;
     Source& operator=(Source&& o) noexcept{
         if (&o != this){
-            if (d()){
+            if (isValid()){
                 cleanup();
             }
 
@@ -117,6 +117,8 @@ public:
     /// Performs explicit cleanup.
     /// Ultimately closes the source.
     void cleanup() noexcept{
+        assert(isValid());
+
         PendingXfers xfers;
 
         switch (d()->m_state){
@@ -146,6 +148,8 @@ public:
 
     /// TWAIN state of the source.
     DsState state() const noexcept{
+        assert(isValid());
+
         return d()->m_state;
     }
 
@@ -162,6 +166,8 @@ public:
 
     /// Identity of the source.
     const Identity& identity() const noexcept{
+        assert(isValid());
+
         return d()->m_srcId;
     }
 
@@ -171,6 +177,8 @@ public:
     /// `waitReady()` then returns CheckStatus, and the device event may be processed in
     /// the main thread. Call `waitReady()` again once you are done.}
     void setEventCallBack(EventCallBack devEvent){
+        assert(isValid());
+
         d()->m_devEvent = std::move(devEvent);
     }
 
@@ -216,6 +224,8 @@ public:
 
     /// Closes the source.
     ReturnCode close(){
+        assert(isValid());
+
         Identity::Id id = d()->m_srcId.id();
         ReturnCode rc = dsm(nullptr, DataGroup::Control, Dat::Identity, Msg::CloseDs, d()->m_srcId);
         if (success(rc)){
@@ -244,6 +254,8 @@ public:
 
     /// Disables this source.
     ReturnCode disable(){
+        assert(isValid());
+
         UserInterface ui(false, false, d()->m_uiHandle);
         auto rc = dsm(DataGroup::Control, Dat::UserInterface, Msg::DisableDs, ui);
         if (success(rc)){
@@ -261,6 +273,8 @@ public:
     /// \return {Failure on error, Cancel on CANCEL button, Success on SAVE or SCAN button,
     ///          CheckStatus on device event.}
     ReturnCode waitReady(){
+        assert(isValid());
+
         if (d()->m_state != DsState::Enabled){
             return ReturnCode::Failure;
         }
@@ -330,6 +344,8 @@ public:
     /// \return {Failure on error, Cancel on CANCEL button, Success on SAVE or SCAN button,
     ///          CheckStatus on device event. Also NotDsEvent or DsEvent on unknown DS message.}
     ReturnCode processEvent(MSG* event){
+        assert(isValid());
+
         bool usesCb = Static<void>::g_cbRefs.count(d()->m_srcId.id()) > 0;
 
         Event twEvent(event, Msg::Null);
@@ -723,6 +739,8 @@ private:
     }
 
     ReturnCode dsmPtr(Identity* dest, DataGroup dg, Dat dat, Msg msg, void* data) noexcept{
+        assert(isValid());
+
         auto mgr = d()->m_mgr;
         return mgr->m_entry(&mgr->m_appId, dest, dg, dat, msg, data);
     }
@@ -815,7 +833,7 @@ public:
         m_data(new Detail::ManagerData(appIdentity)){}
 
     ~Manager(){
-        if (d()){
+        if (isValid()){
             cleanup();
         }
     }
@@ -823,7 +841,7 @@ public:
     Manager(Manager&&) = default;
     Manager& operator=(Manager&& o) noexcept{
         if (&o != this){
-            if (d()){
+            if (isValid()){
                 cleanup();
             }
 
@@ -835,6 +853,8 @@ public:
 
     /// Explicitly cleanes the manager, ultimately closing it.
     void cleanup() noexcept{
+        assert(isValid());
+
         switch (d()->m_state){
             case DsmState::Open:
                 close();
@@ -855,6 +875,8 @@ public:
     ///                   Has no effect anywhere else.}
     /// \return Whether this call loaded the library.
     bool load(bool preferOld = false) noexcept{
+        assert(isValid());
+
         if (d()->m_state != DsmState::PreSession){
             return false;
         }
@@ -877,6 +899,8 @@ public:
     /// Not a TWAIN call.
     /// \return Whether this call unloaded the library.
     bool unload() noexcept{
+        assert(isValid());
+
         if (d()->m_state != DsmState::Loaded){
             return false;
         }
@@ -890,6 +914,8 @@ public:
     /// Opens the manager.
     ReturnCode open(Handle rootWindow = Handle()) noexcept{
         using namespace Detail;
+
+        assert(isValid());
 
         if (d()->m_state != DsmState::Loaded){
             return ReturnCode::Failure;
@@ -931,6 +957,8 @@ public:
 
     /// Closes the manager.
     ReturnCode close() noexcept{
+        assert(isValid());
+
         // no need to check state, dsm will do it for us
 
 #if defined(TWPP_DETAIL_OS_WIN)
@@ -952,6 +980,8 @@ public:
     /// a source with the supplied product name and manufacturer exists.
     /// \throw std::bad_alloc
     Source createSource(const Str32& productName, const Str32& manufacturer){
+        assert(isValid());
+
         return Source(d(), Identity(Version(), DataGroup::Control, manufacturer, Str32(), productName));
     }
 
@@ -1011,11 +1041,15 @@ public:
 
     /// The current manager TWAIN state.
     DsmState state() const noexcept{
+        assert(isValid());
+
         return d()->m_state;
     }
 
     /// Application identity the manager was/will be open with.
     const Identity& identity() const noexcept{
+        assert(isValid());
+
         return d()->m_appId;
     }
 
@@ -1054,6 +1088,8 @@ private:
     }
 
     ReturnCode dsmPtr(Identity* dest, DataGroup dg, Dat dat, Msg msg, void* data){
+        assert(isValid());
+
         return d()->m_entry(&d()->m_appId, dest, dg, dat, msg, data);
     }
 
