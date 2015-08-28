@@ -32,8 +32,13 @@ SOFTWARE.
 namespace Twpp {
 
 #define TWPP_ENTRY(SourceClass)\
-    extern "C" TWPP_DETAIL_EXPORT ReturnCode TWPP_DETAIL_CALLSTYLE \
-    DS_Entry(Identity* origin, DataGroup dg, Dat dat, Msg msg, void* data){\
+    extern "C" TWPP_DETAIL_EXPORT Twpp::ReturnCode TWPP_DETAIL_CALLSTYLE \
+    DS_Entry(Twpp::Identity* origin, Twpp::DataGroup dg, Twpp::Dat dat, Twpp::Msg msg, void* data){\
+        static_assert(\
+            std::is_base_of<Twpp::SourceFromThis<SourceClass, false>, SourceClass>::value ||\
+            std::is_base_of<Twpp::SourceFromThis<SourceClass, true>, SourceClass>::value,\
+            "Class " #SourceClass " is not derived from SourceFromThis."\
+        );\
         return SourceClass::entry(origin, dg, dat, msg, data);\
     }
 
