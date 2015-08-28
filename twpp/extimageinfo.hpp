@@ -240,17 +240,19 @@ public:
 
         auto itemSize = typeSize(type);
 
-        Detail::deleteInfo(*this);
-        m_itemType = Type::DontCare;
-        m_numItems = 0;
-
         bool big = hasDataHandle(type, count);
-
         // [items] <=> !big
         // handle->[items] <=> big
 
+        Detail::UniqueHandle newItem;
         if (big){
-            *Detail::alias_cast<Handle*>(&m_item) = Detail::alloc(itemSize * count);
+            newItem = Detail::alloc(itemSize * count);
+        }
+
+        Detail::deleteInfo(*this);
+
+        if (big){
+            *Detail::alias_cast<Handle*>(&m_item) = newItem.release();
         }
 
         m_itemType = type;
@@ -262,14 +264,11 @@ public:
     /// \param itemSize Number of bytes to allocate.
     /// \throw std::bad_alloc
     void allocHandle(UInt32 itemSize){
-        Detail::deleteInfo(*this);
-
-        m_itemType = Type::DontCare;
-        m_numItems = 0;
-
         // handle->[chars]
+        auto newItem = Detail::UniqueHandle(Detail::alloc(itemSize));
 
-        *Detail::alias_cast<Handle*>(&m_item) = Detail::alloc(itemSize);
+        Detail::deleteInfo(*this);
+        *Detail::alias_cast<Handle*>(&m_item) = newItem.release();
 
         m_itemType = Type::Handle;
         m_numItems = 1;
@@ -421,9 +420,9 @@ public:
     ExtImageInfo(std::initializer_list<InfoId> ids) :
         m_data(new char[sizeof(Detail::ExtImageInfoData) - sizeof(Info) + ids.size() * sizeof(Info)]()){
 
-        ptr()->m_numInfos = ids.size();
+        d()->m_numInfos = ids.size();
 
-        Info* infos = ptr()->m_infos;
+        Info* infos = d()->m_infos;
 
         UInt32 i = 0;
         for (auto id : ids){
@@ -439,22 +438,29 @@ public:
     ExtImageInfo& operator=(ExtImageInfo&&) = default;
 
     operator bool() const noexcept{
-        return m_data.get() != nullptr;
+        return isValid();
+    }
+
+    bool isValid() const noexcept{
+        return static_cast<bool>(m_data);
     }
 
     /// Number of requested entries.
     UInt32 size() const noexcept{
-        return ptr()->m_numInfos;
+        assert(isValid());
+        return d()->m_numInfos;
     }
 
     /// Information entry.
     Info& at(UInt32 i) noexcept{
-        return ptr()->m_infos[i];
+        assert(isValid());
+        return d()->m_infos[i];
     }
 
     /// Information entry.
     const Info& at(UInt32 i) const noexcept{
-        return ptr()->m_infos[i];
+        assert(isValid());
+        return d()->m_infos[i];
     }
 
     Info& operator[](UInt32 i) noexcept{
@@ -467,7 +473,8 @@ public:
 
 
     iterator begin() noexcept{
-        return ptr()->m_infos;
+        assert(isValid());
+        return d()->m_infos;
     }
 
     const_iterator begin() const noexcept{
@@ -475,11 +482,13 @@ public:
     }
 
     const_iterator cbegin() const noexcept{
-        return ptr()->m_infos;
+        assert(isValid());
+        return d()->m_infos;
     }
 
     iterator end() noexcept{
-        return ptr()->m_infos + ptr()->m_numInfos;
+        assert(isValid());
+        return d()->m_infos + d()->m_numInfos;
     }
 
     const_iterator end() const noexcept{
@@ -487,15 +496,16 @@ public:
     }
 
     const_iterator cend() const noexcept{
-        return ptr()->m_infos + ptr()->m_numInfos;
+        assert(isValid());
+        return d()->m_infos + d()->m_numInfos;
     }
 
 private:
-    Detail::ExtImageInfoData* ptr() noexcept{
+    Detail::ExtImageInfoData* d() noexcept{
         return reinterpret_cast<Detail::ExtImageInfoData*>(m_data.get());
     }
 
-    Detail::ExtImageInfoData* ptr() const noexcept{
+    Detail::ExtImageInfoData* d() const noexcept{
         return reinterpret_cast<Detail::ExtImageInfoData*>(m_data.get());
     }
 
