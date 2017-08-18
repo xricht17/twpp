@@ -154,8 +154,9 @@ enum {
     typedef void* Handle;
     static constexpr const Handle nullHandle = nullptr;
 
-    static inline DsmEntry resolve(Handle h) noexcept{
-        return reinterpret_cast<DsmEntry>(::dlsym(h, "DSM_Entry"));
+    template<typename T>
+    static inline T resolve(Handle h) noexcept{
+        return reinterpret_cast<T>(::dlsym(h, "DSM_Entry"));
     }
 
     static inline Handle load(bool) noexcept{
@@ -192,8 +193,9 @@ enum {
     typedef void* Handle;
     static constexpr const Handle nullHandle = nullptr;
 
-    static inline DsmEntry resolve(Handle h) noexcept{
-        return reinterpret_cast<DsmEntry>(::dlsym(h, "DSM_Entry"));
+    template<typename T>
+    static inline T resolve(Handle h) noexcept{
+        return reinterpret_cast<T>(::dlsym(h, "DSM_Entry"));
     }
 
     static inline Handle load(bool) noexcept{
