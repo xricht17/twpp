@@ -44,7 +44,7 @@ Platforms
 ---------
  - Windows: working on Windows 7 32/64bit, expected to work fine on any 32/64bit version
  - Linux: working on Ubuntu 10.04 i386, Ubuntu 14.04 i386
- - Mac OS: unknown, issues expected
+ - Mac OS: requires work, help welcome, see issues
 
 Installation
 ------------
