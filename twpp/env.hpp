@@ -138,7 +138,6 @@ enum {
 #   else
 #       include <Carbon/Carbon.h>
 #   endif
-#   include <MacMemory.h>
 #   include <dlfcn.h>
     }
 #   define TWPP_DETAIL_CALLSTYLE pascal
