@@ -31,8 +31,8 @@ Requirements
 ------------
  - C++11
  - Windows, Linux, Mac OS X
- - Linux, Mac OS: `<mutex>` and `<condition_variable>`
- - Linux: -ldl
+ - Mac OS: Carbon
+ - Linux: `<mutex>`, `<condition_variable>`, -ldl
 
 Compilers
 ---------
@@ -44,7 +44,7 @@ Platforms
 ---------
  - Windows: working on Windows 7 32/64bit, expected to work fine on any 32/64bit version
  - Linux: working on Ubuntu 10.04 i386, Ubuntu 14.04 i386
- - Mac OS: requires work, help welcome, see issues
+ - Mac OS: application might work, see issues, help welcome
 
 Installation
 ------------
@@ -208,7 +208,7 @@ protected:
 
     virtual Result eventProcess(const Identity& origin, Event& data) override{
         // event Msg::ProcessEvent operation
-        // only required on Windows, has no meaning anywhere else
+        // only required on Windows and Mac, has no meaning on Linux
     }
 
     virtual Result identityOpenDs(const Identity& origin) override{
