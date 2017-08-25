@@ -2,7 +2,7 @@
 
 The MIT License (MIT)
 
-Copyright (c) 2015 Martin Richter
+Copyright (c) 2015-2017 Martin Richter
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -49,8 +49,10 @@ public:
             const Str255& filePath,
             ImageFileFormat format,
             Int16 vrn
-#if !defined(TWPP_DETAIL_OS_MAC)
+#if defined(TWPP_DETAIL_OS_WIN) || defined(TWPP_DETAIL_OS_LINUX)
                 = -1
+#elif !defined(TWPP_DETAIL_OS_MAC)
+#   error "Volume reference number for your platform here"
 #endif
     ) noexcept :
         m_filePath(filePath), m_format(format),

@@ -2,7 +2,7 @@
 
 The MIT License (MIT)
 
-Copyright (c) 2015 Martin Richter
+Copyright (c) 2015-2017 Martin Richter
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -46,6 +46,8 @@ struct ManagerData {
 #if defined(TWPP_DETAIL_OS_WIN)
     Handle m_rootWindow;
     bool m_ownRootWindow;
+#elif !defined(TWPP_DETAIL_OS_MAC) && !defined(TWPP_DETAIL_OS_LINUX)
+#   error "ManagerData for your platform here"
 #endif
 
 };
@@ -62,9 +64,11 @@ struct SourceData {
     DsState m_state = DsState::Closed;
     Msg m_readyMsg = Msg::Null;
 
-#if !defined(TWPP_DETAIL_OS_WIN)
+#if defined(TWPP_DETAIL_OS_LINUX)
     std::mutex m_cbMutex;
     std::condition_variable m_cbCond;
+#elif !defined(TWPP_DETAIL_OS_WIN) && !defined(TWPP_DETAIL_OS_MAC)
+#   error "SourceData for your platform here"
 #endif
 
 };
@@ -210,12 +214,14 @@ public:
                     throw;
                 }
             }
-#if !defined(TWPP_DETAIL_OS_WIN)
-            // non-windows platforms require callback
+#if defined(TWPP_DETAIL_OS_LINUX)
+            // linux platform requires callback
             else {
                 close();
                 rc = ReturnCode::Failure;
             }
+#elif !defined(TWPP_DETAIL_OS_WIN) && !defined(TWPP_DETAIL_OS_MAC)
+#   error "source open setup for your platform here"
 #endif
         }
 
@@ -279,8 +285,6 @@ public:
             return ReturnCode::Failure;
         }
 
-        bool usesCb = Static<void>::g_cbRefs.count(d()->m_srcId.id()) > 0;
-
 #if defined(TWPP_DETAIL_OS_WIN)
         MSG msg;
         memset(&msg, 0, sizeof(msg));
@@ -299,7 +303,7 @@ public:
                     DispatchMessage(&msg);
                     // fallthrough
                 case ReturnCode::DsEvent:
-                    if (!usesCb){
+                    if (d()->m_readyMsg == Msg::Null){
                         d()->m_readyMsg = event.message();
                     }
 
@@ -309,15 +313,37 @@ public:
                     return rc;
             }
         }
-#else
-        if (!usesCb){
-            return ReturnCode::Failure;
+#elif defined(TWPP_DETAIL_OS_MAC)
+        EventRecord eventRecord;
+        memset(&eventRecord, 0, sizeof(eventRecord));
+
+        Event actualEvent(&eventRecord, Msg::Null);
+        Event nullEvent(nullptr, Msg::Null);
+        while (d()->m_readyMsg == Msg::Null){
+            bool wait = WaitNextEvent(everyEvent, &eventRecord, 1, nullptr);
+            Event& event = wait ? actualEvent : nullEvent;
+            auto rc = dsm(DataGroup::Control, Dat::Event, Msg::ProcessEvent, event);
+            switch (rc){
+                case ReturnCode::NotDsEvent:
+                case ReturnCode::DsEvent:
+                    if (d()->m_readyMsg == Msg::Null){
+                        d()->m_readyMsg = event.message();
+                    }
+
+                    break;
+
+                default:
+                    return rc;
+            }
         }
 
+#elif defined(TWPP_DETAIL_OS_LINUX)
         std::unique_lock<std::mutex> lock(d()->m_cbMutex);
         while (d()->m_readyMsg == Msg::Null){
             d()->m_cbCond.wait(lock);
         }
+#else
+#   error "waitReady for your platform here"
 #endif
 
         switch (d()->m_readyMsg){
@@ -338,51 +364,53 @@ public:
         }
     }
 
-#if defined(TWPP_DETAIL_OS_WIN)
+#if defined(TWPP_DETAIL_OS_WIN) || defined(TWPP_DETAIL_OS_MAC)
     /// Processes a single GUI event without blocking.
-    /// Can be used on Windows instead of `waitReady()` to process a single GUI event.
+    /// Can be used on Windows and Mac instead of `waitReady()` to process a single GUI event.
     /// \return {Failure on error, Cancel on CANCEL button, Success on SAVE or SCAN button,
     ///          CheckStatus on device event. Also NotDsEvent or DsEvent on unknown DS message.}
+#   if defined (TWPP_DETAIL_OS_WIN)
     ReturnCode processEvent(MSG* event){
+#   else
+    ReturnCode processEvent(EventRecord* event){
+#   endif
         assert(isValid());
-
-        bool usesCb = Static<void>::g_cbRefs.count(d()->m_srcId.id()) > 0;
 
         Event twEvent(event, Msg::Null);
         auto rc = dsm(DataGroup::Control, Dat::Event, Msg::ProcessEvent, twEvent);
         switch (rc){
             case ReturnCode::NotDsEvent:
             case ReturnCode::DsEvent:
-                if (!usesCb){
+                if (d()->m_readyMsg == Msg::Null){
                     d()->m_readyMsg = twEvent.message();
-                }
-
-                switch (d()->m_readyMsg){
-                    case Msg::XferReady: // ok/scan button <=> Msg::EnableDs
-                        d()->m_state = DsState::XferReady;
-                        // fallthrough
-                    case Msg::CloseDsOk: // ok/scan button <=> Msg::EnableDsUiOnly
-                        return ReturnCode::Success;
-
-                    case Msg::CloseDsReq: // cancel button
-                        return ReturnCode::Cancel;
-
-                    case Msg::DeviceEvent:
-                        d()->m_readyMsg = Msg::Null;
-                        return ReturnCode::CheckStatus;
-
-                    default:
-                        break;
                 }
 
                 break;
 
             default:
-                break;
+                return rc;
         }
 
-        return rc;
+        switch (d()->m_readyMsg){
+            case Msg::XferReady: // ok/scan button <=> Msg::EnableDs
+                d()->m_state = DsState::XferReady;
+                // fallthrough
+            case Msg::CloseDsOk: // ok/scan button <=> Msg::EnableDsUiOnly
+                return ReturnCode::Success;
+
+            case Msg::CloseDsReq: // cancel button
+                return ReturnCode::Cancel;
+
+            case Msg::DeviceEvent:
+                d()->m_readyMsg = Msg::Null;
+                return ReturnCode::CheckStatus;
+
+            default:
+                return rc;
+        }
     }
+#elif !defined(TWPP_DETAIL_OS_LINUX)
+#   error "processEvent for your platform here"
 #endif
 
     /// Sends custom, user-defined data to the source.
@@ -802,11 +830,13 @@ private:
 
         Detail::SourceData* src = it->second;
 
-#if !defined(TWPP_DETAIL_OS_WIN)
+#if defined(TWPP_DETAIL_OS_LINUX)
         std::unique_lock<std::mutex> lock(src->m_cbMutex);
         if (src->m_state != DsState::Enabled){
             lock.unlock();
         }
+#elif !defined(TWPP_DETAIL_OS_WIN) && !defined(TWPP_DETAIL_OS_MAC)
+#   error "callBack preparation for your platform here"
 #endif
         if (msg == Msg::DeviceEvent){
             if (!src->m_devEvent){
@@ -821,8 +851,10 @@ private:
 
 #if defined(TWPP_DETAIL_OS_WIN)
             PostMessageA(static_cast<HWND>(src->m_mgr->m_rootWindow.raw()), WM_NULL, 0, 0);
-#else
+#elif defined(TWPP_DETAIL_OS_LINUX)
             src->m_cbCond.notify_one();
+#elif !defined(TWPP_DETAIL_OS_MAC)
+#   error "callBack for your platform here"
 #endif
         }
 
@@ -957,6 +989,8 @@ public:
             d()->m_ownRootWindow = true;
             rootWindow = d()->m_rootWindow;
         }
+#elif !defined(TWPP_DETAIL_OS_MAC) && !defined(TWPP_DETAIL_OS_LINUX)
+#   error "manager open setup for your platform here"
 #endif
 
         auto rc = dsm(nullptr, DataGroup::Control, Dat::Parent, Msg::OpenDsm, rootWindow);
@@ -983,8 +1017,10 @@ public:
 
 #if defined(TWPP_DETAIL_OS_WIN)
         Handle rootWindow = d()->m_rootWindow;
-#else
+#elif defined(TWPP_DETAIL_OS_MAC) || defined(TWPP_DETAIL_OS_LINUX)
         Handle rootWindow;
+#else
+#   error "close manager for your platform here"
 #endif
 
         auto rc = dsm(nullptr, DataGroup::Control, Dat::Parent, Msg::CloseDsm, rootWindow);
@@ -1091,6 +1127,8 @@ private:
             CloseWindow(static_cast<HWND>(d()->m_rootWindow.raw()));
             d()->m_ownRootWindow = Handle();
         }
+#elif !defined(TWPP_DETAIL_OS_MAC) && !defined(TWPP_DETAIL_OS_LINUX)
+#   error "closeRootWindow for your platform here"
 #endif
     }
 

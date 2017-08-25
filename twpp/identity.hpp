@@ -2,7 +2,7 @@
 
 The MIT License (MIT)
 
-Copyright (c) 2015 Martin Richter
+Copyright (c) 2015-2017 Martin Richter
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -124,8 +124,10 @@ public:
     typedef
 #if defined(TWPP_DETAIL_OS_MAC)
     void*
-#else
+#elif defined(TWPP_DETAIL_OS_WIN) || defined(TWPP_DETAIL_OS_LINUX)
     UInt32
+#else
+#   error "Identity::Id for your platform here"
 #endif
     Id;
 

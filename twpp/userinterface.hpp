@@ -2,7 +2,7 @@
 
 The MIT License (MIT)
 
-Copyright (c) 2015 Martin Richter
+Copyright (c) 2015-2017 Martin Richter
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -43,9 +43,11 @@ public:
 #if defined(TWPP_DETAIL_OS_WIN)
     constexpr UserInterface(Bool showUi, Bool modalUi, Handle parent) noexcept :
         m_showUi(showUi), m_modalUi(modalUi), m_parent(parent){}
-#else
+#elif defined(TWPP_DETAIL_OS_MAC) || defined(TWPP_DETAIL_OS_LINUX)
     constexpr UserInterface(Bool showUi, Bool modalUi, Handle parent = Handle()) noexcept :
         m_showUi(showUi), m_modalUi(modalUi), m_parent(parent){}
+#else
+#   error "UserInterface constructor for your platform here"
 #endif
 
     /// Whether to show internal DS GUI.

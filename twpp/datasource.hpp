@@ -2,7 +2,7 @@
 
 The MIT License (MIT)
 
-Copyright (c) 2015 Martin Richter
+Copyright (c) 2015-2017 Martin Richter
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -601,13 +601,13 @@ protected:
             return eventProcess(origin, data);
         }
 
-#if defined(TWPP_DETAIL_OS_WIN)
+#if defined(TWPP_DETAIL_OS_WIN) || defined(TWPP_DETAIL_OS_MAC)
             /// Process event TWAIN call.
             /// Always called in correct state.
             /// \param origin Identity of the caller.
             /// \param data Event data.
             virtual Result eventProcess(const Identity& origin, Event& data) = 0;
-#else
+#elif defined(TWPP_DETAIL_OS_LINUX)
             /// Process event TWAIN call.
             /// Always called in correct state.
             /// Default implementation does nothing.
@@ -617,6 +617,8 @@ protected:
                 Detail::unused(origin, data);
                 return badProtocol();
             }
+#else
+#   error "eventProcess for your platform here"
 #endif
 
         /// Identity TWAIN call.

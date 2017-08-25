@@ -2,7 +2,7 @@
 
 The MIT License (MIT)
 
-Copyright (c) 2015 Martin Richter
+Copyright (c) 2015-2017 Martin Richter
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -44,6 +44,8 @@ struct FixedArrayData<char, arraySize, IndexList<i...> > {
         m_arr{
 #if defined(TWPP_DETAIL_OS_MAC)
             unsignedToSigned<unsigned char>(inputSize - 1),
+#elif !defined(TWPP_DETAIL_OS_WIN) && !defined(TWPP_DETAIL_OS_LINUX)
+#   error "string data setup for yout platform here"
 #endif
             FixedArrayFlat<char, arraySize>(arr)[i]...
         }{}
@@ -130,8 +132,10 @@ public:
     constexpr UInt32 length() const noexcept{
 #if defined(TWPP_DETAIL_OS_MAC)
         return static_cast<unsigned const char>(this->array()[0]);
-#else
+#elif defined(TWPP_DETAIL_OS_WIN) || defined(TWPP_DETAIL_OS_LINUX)
         return strLen(data());
+#else
+#   error "String::length for your platform here"
 #endif
     }
 
@@ -142,8 +146,10 @@ public:
     constexpr const char* data() const noexcept{
 #if defined(TWPP_DETAIL_OS_MAC)
         return this->array() + 1;
-#else
+#elif defined(TWPP_DETAIL_OS_WIN) || defined(TWPP_DETAIL_OS_LINUX)
         return this->array();
+#else
+#   error "String::data for your platform here"
 #endif
     }
 
@@ -154,8 +160,10 @@ public:
     char* data() noexcept{
 #if defined(TWPP_DETAIL_OS_MAC)
         return this->array() + 1;
-#else
+#elif defined(TWPP_DETAIL_OS_WIN) || defined(TWPP_DETAIL_OS_LINUX)
         return this->array();
+#else
+#   error "String::data for your platform here"
 #endif
     }
 
@@ -176,8 +184,10 @@ public:
 
 #if defined(TWPP_DETAIL_OS_MAC)
         *reinterpret_cast<unsigned char*>(this->array()) = static_cast<unsigned char>(i);
-#else
+#elif defined(TWPP_DETAIL_OS_WIN) || defined(TWPP_DETAIL_OS_LINUX)
         arr[i] = '\0';
+#else
+#   error "String::setData for your platform here"
 #endif
 
         return i;
@@ -248,9 +258,12 @@ constexpr bool operator==(const Detail::Str<sizeA>& a, const Detail::Str<sizeB>&
     // length() is O(1) on mac os, O(n) anywhere else
 #if defined(TWPP_DETAIL_OS_MAC)
     return a.length() == b.length() && Detail::strCmp(a.data(), b.data()) == 0;
+#elif defined(TWPP_DETAIL_OS_WIN) || defined(TWPP_DETAIL_OS_LINUX)
+        return Detail::strCmp(a.data(), b.data()) == 0;
 #else
-    return Detail::strCmp(a.data(), b.data()) == 0;
+#   error "String equals operator for your platform here"
 #endif
+
 }
 
 template<std::size_t sizeA, std::size_t sizeB>

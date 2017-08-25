@@ -2,7 +2,7 @@
 
 The MIT License (MIT)
 
-Copyright (c) 2015 Martin Richter
+Copyright (c) 2015-2017 Martin Richter
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -79,7 +79,9 @@ struct GlobalMemFuncs {
     static void TWPP_DETAIL_CALLSTYLE defUnlock(Handle::Raw handle){
         // noop
     }
-#endif // Linux doesnt need default functions
+#elif !defined(TWPP_DETAIL_OS_LINUX) // Linux doesnt need default functions
+#   error "default memory functions for your platform here"
+#endif
 
     static MemAlloc alloc;
     static MemFree free;
@@ -100,7 +102,7 @@ MemLock GlobalMemFuncs<Dummy>::lock = GlobalMemFuncs<Dummy>::defLock;
 
 template<typename Dummy>
 MemUnlock GlobalMemFuncs<Dummy>::unlock = GlobalMemFuncs<Dummy>::defUnlock;
-#else
+#elif defined(TWPP_DETAIL_OS_LINUX)
 template<typename Dummy>
 MemAlloc GlobalMemFuncs<Dummy>::alloc = nullptr;
 
@@ -112,6 +114,8 @@ MemLock GlobalMemFuncs<Dummy>::lock = nullptr;
 
 template<typename Dummy>
 MemUnlock GlobalMemFuncs<Dummy>::unlock = nullptr;
+#else
+#   error "default memory functions setup for your platform here"
 #endif
 
 inline static void setMemFuncs(MemAlloc alloc, MemFree free, MemLock lock, MemUnlock unlock) noexcept{
@@ -127,6 +131,13 @@ inline static void resetMemFuncs() noexcept{
     GlobalMemFuncs<void>::free = GlobalMemFuncs<void>::defFree;
     GlobalMemFuncs<void>::lock = GlobalMemFuncs<void>::defLock;
     GlobalMemFuncs<void>::unlock = GlobalMemFuncs<void>::defUnlock;
+#elif defined(TWPP_DETAIL_OS_LINUX)
+    GlobalMemFuncs<void>::alloc = nullptr;
+    GlobalMemFuncs<void>::free = nullptr;
+    GlobalMemFuncs<void>::lock = nullptr;
+    GlobalMemFuncs<void>::unlock = nullptr;
+#else
+#   error "resetMemFuncs for your platform here"
 #endif
 }
 

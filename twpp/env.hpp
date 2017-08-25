@@ -2,7 +2,7 @@
 
 The MIT License (MIT)
 
-Copyright (c) 2015 Martin Richter
+Copyright (c) 2015-2017 Martin Richter
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -130,7 +130,7 @@ enum {
 
 // Mac OS
 #elif defined(__APPLE__)
-#   pragma warning "No testing has been done on this platform, this framework might not work correctly."
+#   pragma message "No testing has been done on this platform, this framework might not work correctly."
 #   define TWPP_DETAIL_OS_MAC 1
     extern "C" {
 #   if defined(__MWERKS__)
@@ -249,8 +249,7 @@ enum {
 
 // fail everything else
 #else
-#   error unsupported compiler, please define your own TWPP_DETAIL_PACK_BEGIN \
-          and TWPP_DETAIL_PACK_END and possibly TWPP_DETAIL_EXPORT in twpp/env.hpp and send me your patch
+#   error "unsupported compiler, please define your own TWPP_DETAIL_PACK_BEGIN and TWPP_DETAIL_PACK_END and possibly TWPP_DETAIL_EXPORT in twpp/env.hpp and send me your patch"
 #endif
 
 
