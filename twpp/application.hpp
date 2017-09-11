@@ -1124,7 +1124,7 @@ private:
     void closeRootWindow() noexcept{
 #if defined(TWPP_DETAIL_OS_WIN)
         if (d()->m_rootWindow && d()->m_ownRootWindow){
-            CloseWindow(static_cast<HWND>(d()->m_rootWindow.raw()));
+            DestroyWindow(static_cast<HWND>(d()->m_rootWindow.raw()));
             d()->m_ownRootWindow = Handle();
         }
 #elif !defined(TWPP_DETAIL_OS_MAC) && !defined(TWPP_DETAIL_OS_LINUX)
