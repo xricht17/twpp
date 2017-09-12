@@ -1354,7 +1354,7 @@ public:
     /// \throw std::bad_alloc
     template<Type type, typename DataType>
     static Capability createArray(CapType cap, std::initializer_list<DataType> values){
-        Capability ret = createArray<type, DataType>(cap, values.size());
+        Capability ret = createArray<type, DataType>(cap, static_cast<UInt32>(values.size()));
         auto arr = ret.array<type, DataType>();
 
         UInt32 i = 0;
@@ -1455,7 +1455,7 @@ public:
     /// \throw std::bad_alloc
     template<Type type, typename DataType>
     static Capability createEnumeration(CapType cap, std::initializer_list<DataType> values, UInt32 currIndex = 0, UInt32 defIndex = 0){
-        Capability ret = createEnumeration<type, DataType>(cap, values.size(), currIndex, defIndex);
+        Capability ret = createEnumeration<type, DataType>(cap, static_cast<UInt32>(values.size()), currIndex, defIndex);
         auto enm = ret.enumeration<type, DataType>();
 
         UInt32 i = 0;

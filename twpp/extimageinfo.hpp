@@ -420,7 +420,7 @@ public:
     ExtImageInfo(std::initializer_list<InfoId> ids) :
         m_data(new char[sizeof(Detail::ExtImageInfoData) - sizeof(Info) + ids.size() * sizeof(Info)]()){
 
-        d()->m_numInfos = ids.size();
+        d()->m_numInfos = static_cast<UInt32>(ids.size());
 
         Info* infos = d()->m_infos;
 
