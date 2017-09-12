@@ -92,8 +92,8 @@ enum {
         return reinterpret_cast<T>(::GetProcAddress(h, "DSM_Entry"));
     }
 
-    static inline Handle load(bool old) noexcept{
 #   if defined(TWPP_DETAIL_OS_WIN32)
+    static inline Handle load(bool old) noexcept{
         if (old){
             auto h = ::LoadLibraryA("TWAIN_32.dll");
             if (!h){
@@ -101,21 +101,20 @@ enum {
             }
 
             return h;
+        } else {
+            auto h = ::LoadLibraryA("TWAINDSM.dll");
+            if (!h){
+                h = ::LoadLibraryA("TWAIN_32.dll");
+            }
+
+            return h;
         }
-#   endif
-
-        auto h = ::LoadLibraryA("TWAINDSM.dll");
-
-#   if defined(TWPP_DETAIL_OS_WIN32)
-        if (!h){
-            h = ::LoadLibraryA("TWAIN_32.dll");
-        }
-#   else
-        unused(old);
-#   endif
-
-        return h;
     }
+#   else
+    static inline Handle load(bool) noexcept{
+        return ::LoadLibraryA("TWAINDSM.dll");
+    }
+#   endif
 
     static inline void unload(Handle h) noexcept{
         ::FreeLibrary(h);
