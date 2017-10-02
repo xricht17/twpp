@@ -76,7 +76,7 @@ struct GlobalMemFuncs {
         return *handle;
     }
 
-    static void TWPP_DETAIL_CALLSTYLE defUnlock(Handle::Raw handle){
+    static void TWPP_DETAIL_CALLSTYLE defUnlock(Handle::Raw){
         // noop
     }
 #elif !defined(TWPP_DETAIL_OS_LINUX) // Linux doesnt need default functions

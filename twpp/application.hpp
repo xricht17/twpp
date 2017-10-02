@@ -46,7 +46,9 @@ struct ManagerData {
 #if defined(TWPP_DETAIL_OS_WIN)
     Handle m_rootWindow;
     bool m_ownRootWindow;
-#elif !defined(TWPP_DETAIL_OS_MAC) && !defined(TWPP_DETAIL_OS_LINUX)
+#elif defined(TWPP_DETAIL_OS_MAC)
+    Detail::NSAutoreleasePool m_autoreleasePool;
+#elif !defined(TWPP_DETAIL_OS_LINUX)
 #   error "ManagerData for your platform here"
 #endif
 
@@ -139,11 +141,9 @@ public:
                 disable();
                 // fallthrough
             case DsState::Open:
-                if (!success(close())){
-                    // delete the ref even if close() fails somehow
-                    Static<void>::g_cbRefs.erase(d()->m_srcId.id());
-                }
-
+                close();
+                // reset the ref even if close() fails somehow
+                Static<void>::g_openSource = nullptr;
                 // fallthrough
             case DsState::Closed:
                 break;
@@ -190,46 +190,42 @@ public:
     // Control ->
 
     /// Opens the source.
+    /// Only up to 1 source may be opened at the same time.
     /// \throw std::bad_alloc
     ReturnCode open(){
+        assert(Static<void>::g_openSource == nullptr);
+
         auto rc = dsm(nullptr, DataGroup::Control, Dat::Identity, Msg::OpenDs, d()->m_srcId);
         if (success(rc)){
             d()->m_state = DsState::Open;
 
-            auto id = d()->m_srcId.id();                        
-
             // TWAIN manual is rather confusing on this topic.
             // Their example sends the registration to DSM, operation tripet documentation mentions DS as destination.
             // Looking at some other applications, Windows seems to send this to DS, MacOS to DSM.
-            Detail::CallBack2 cb2(callBack<void>, *Detail::alias_cast<UIntPtr*>(&id), Msg::Null);
-            Detail::CallBack cb1(callBack<void>, *Detail::alias_cast<Detail::CallBackConstant*>(&id), Msg::Null);
+            Detail::CallBack cb1(callBack<void>, static_cast<Detail::CallBackConstant>(0), Msg::Null);
+
+#if defined(TWPP_DETAIL_OS_WIN) || defined(TWPP_DETAIL_OS_LINUX)
+            Detail::CallBack2 cb2(callBack<void>, 0, Msg::Null);
 
             bool usesCb = success(dsm(DataGroup::Control, Dat::Callback2, Msg::RegisterCallback, cb2)) ||
                     success(dsm(DataGroup::Control, Dat::Callback, Msg::RegisterCallback, cb1));
-
-#if defined(TWPP_DETAIL_OS_MAC)
-            if (!usesCb){
-                usesCb = success(dsm(nullptr, Dat::Callback, Msg::RegisterCallback, cb1));
-            }
+#elif defined(TWPP_DETAIL_OS_MAC)
+            bool usesCb = success(dsm(nullptr, DataGroup::Control, Dat::Callback, Msg::RegisterCallback, cb1));
+#else
+#   error "callback setup for your platform here"
 #endif
 
-            if (usesCb){
-                try {
-                    Static<void>::g_cbRefs[id] = d();
-                } catch (...){
-                    close();
-                    throw;
-                }
-            }
-#if defined(TWPP_DETAIL_OS_LINUX)
-            // linux platform requires callback
-            else {
+#if defined(TWPP_DETAIL_OS_WIN)
+            Detail::unused(usesCb);
+#elif defined(TWPP_DETAIL_OS_MAC) || defined(TWPP_DETAIL_OS_LINUX)
+            if (!usesCb){
                 close();
-                rc = ReturnCode::Failure;
+                return ReturnCode::Failure;
             }
-#elif !defined(TWPP_DETAIL_OS_WIN) && !defined(TWPP_DETAIL_OS_MAC)
+#else
 #   error "source open setup for your platform here"
 #endif
+            Static<void>::g_openSource = d();
         }
 
         return rc;
@@ -237,12 +233,9 @@ public:
 
     /// Closes the source.
     ReturnCode close(){
-        assert(isValid());
-
-        Identity::Id id = d()->m_srcId.id();
         ReturnCode rc = dsm(nullptr, DataGroup::Control, Dat::Identity, Msg::CloseDs, d()->m_srcId);
         if (success(rc)){
-            Static<void>::g_cbRefs.erase(id);
+            Static<void>::g_openSource = nullptr;
             d()->m_state = DsState::Closed;
         }
 
@@ -279,9 +272,10 @@ public:
     }
 
     /// Waits on source GUI, blocking.
+    /// This method is meant for CMD applications, see `processEvent()` for GUI-friendly version.
     /// The state is moved to XferReady, when Success is returned, and the source is enabled with full UI (uiOnly = false).
-    /// On Windows, call this method from the main thread, GUI events are processed here.
-    /// On Linux and Mac Os, this method may be called from any thread, GUI events are NOT processed.
+    /// On Windows and Mac OS, call this method from the main thread, GUI events are processed here.
+    /// On Linux, this method may be called from any thread, GUI events are NOT processed.
     /// Call this again after processing device event.
     /// \return {Failure on error, Cancel on CANCEL button, Success on SAVE or SCAN button,
     ///          CheckStatus on device event.}
@@ -321,28 +315,13 @@ public:
             }
         }
 #elif defined(TWPP_DETAIL_OS_MAC)
-        EventRecord eventRecord;
-        memset(&eventRecord, 0, sizeof(eventRecord));
+        Detail::NSAutoreleasePool pool;
 
-        Event actualEvent(&eventRecord, Msg::Null);
-        Event nullEvent(nullptr, Msg::Null);
-        while (d()->m_readyMsg == Msg::Null){
-            bool wait = WaitNextEvent(everyEvent, &eventRecord, 1, nullptr);
-            Event& event = wait ? actualEvent : nullEvent;
-            auto rc = dsm(DataGroup::Control, Dat::Event, Msg::ProcessEvent, event);
-            switch (rc){
-                case ReturnCode::NotDsEvent:
-                case ReturnCode::DsEvent:
-                    if (d()->m_readyMsg == Msg::Null){
-                        d()->m_readyMsg = event.message();
-                    }
-
-                    break;
-
-                default:
-                    return rc;
-            }
+        while(d()->m_readyMsg == Msg::Null) {
+            Detail::NSLoop::processEvent();
         }
+
+        pool.release();
 
 #elif defined(TWPP_DETAIL_OS_LINUX)
         std::unique_lock<std::mutex> lock(d()->m_cbMutex);
@@ -371,23 +350,18 @@ public:
         }
     }
 
-#if defined(TWPP_DETAIL_OS_WIN) || defined(TWPP_DETAIL_OS_MAC)
     /// Processes a single GUI event without blocking.
-    /// Can be used on Windows and Mac instead of `waitReady()` to process a single GUI event.
+    /// Can be used instead of `waitReady()` to process a single event.
+    /// Windows users must pass events from GUI loop to this method to be sent to DS.
     /// \return {Failure on error, Cancel on CANCEL button, Success on SAVE or SCAN button,
-    ///          CheckStatus on device event. Also NotDsEvent or DsEvent on unknown DS message.}
-#   if defined (TWPP_DETAIL_OS_WIN)
+    ///          CheckStatus on device event. NotDsEvent OR DsEvent when not ready yet.}
+#if defined (TWPP_DETAIL_OS_WIN)
     ReturnCode processEvent(MSG* event){
-#   else
-    ReturnCode processEvent(EventRecord* event){
-#   endif
-        assert(isValid());
-
         Event twEvent(event, Msg::Null);
         auto rc = dsm(DataGroup::Control, Dat::Event, Msg::ProcessEvent, twEvent);
         switch (rc){
-            case ReturnCode::NotDsEvent:
             case ReturnCode::DsEvent:
+            case ReturnCode::NotDsEvent:
                 if (d()->m_readyMsg == Msg::Null){
                     d()->m_readyMsg = twEvent.message();
                 }
@@ -398,7 +372,25 @@ public:
                 return rc;
         }
 
-        switch (d()->m_readyMsg){
+        auto msg = d()->m_readyMsg;
+
+#elif defined(TWPP_DETAIL_OS_LINUX) || defined(TWPP_DETAIL_OS_MAC)
+    ReturnCode processEvent(){
+        assert(isValid());
+        auto rc = ReturnCode::NotDsEvent;
+
+#   if defined(TWPP_DETAIL_OS_MAC)
+        auto msg = d()->m_readyMsg;
+#   else
+        std::unique_lock<std::mutex> lock(d()->m_cbMutex);
+        auto msg = d()->m_readyMsg;
+        lock.unlock();
+#   endif
+
+#else
+#   error "processEvent for your platform here"
+#endif
+        switch (msg){
             case Msg::XferReady: // ok/scan button <=> Msg::EnableDs
                 d()->m_state = DsState::XferReady;
                 // fallthrough
@@ -412,13 +404,13 @@ public:
                 d()->m_readyMsg = Msg::Null;
                 return ReturnCode::CheckStatus;
 
-            default:
+            case Msg::Null:
                 return rc;
+
+            default:
+                return ReturnCode::Failure;
         }
     }
-#elif !defined(TWPP_DETAIL_OS_LINUX)
-#   error "processEvent for your platform here"
-#endif
 
     /// Sends custom, user-defined data to the source.
     /// This operation is unsafe, there is no way to discover
@@ -813,11 +805,7 @@ private:
     // templates behave as if defined in at most one source file
     template<typename>
     struct Static {
-        // it is uncommon to open more than one source at time
-        // so we expect to hold at most one mapping
-        // map is most likely faster, and definitely consumes
-        // less memory than unordered_map in such cases
-        static std::map<Identity::Id, Detail::SourceData*> g_cbRefs;
+        static Detail::SourceData* g_openSource;
     };
 
     template<typename>
@@ -827,15 +815,12 @@ private:
             DataGroup,
             Dat,
             Msg msg,
-            void* data
+            void*
     ) noexcept{
-        auto& refs = Static<void>::g_cbRefs;
-        auto it = refs.find(*Detail::alias_cast<Identity::Id*>(&data));
-        if (it == refs.end()){
+        Detail::SourceData* src = Static<void>::g_openSource;
+        if (src == nullptr){
             return ReturnCode::Failure;
         }
-
-        Detail::SourceData* src = it->second;
 
 #if defined(TWPP_DETAIL_OS_LINUX)
         std::unique_lock<std::mutex> lock(src->m_cbMutex);
@@ -860,7 +845,9 @@ private:
             PostMessageA(static_cast<HWND>(src->m_mgr->m_rootWindow.raw()), WM_NULL, 0, 0);
 #elif defined(TWPP_DETAIL_OS_LINUX)
             src->m_cbCond.notify_one();
-#elif !defined(TWPP_DETAIL_OS_MAC)
+#elif defined(TWPP_DETAIL_OS_MAC)
+            Detail::NSLoop::postDummy();
+#else
 #   error "callBack for your platform here"
 #endif
         }
@@ -874,7 +861,7 @@ private:
 };
 
 template<typename Dummy>
-std::map<Identity::Id, Detail::SourceData*> Source::Static<Dummy>::g_cbRefs;
+Detail::SourceData* Source::Static<Dummy>::g_openSource = nullptr;
 
 /// TWAIN data source manager.
 /// At most one valid instance may exist at all times.
@@ -972,8 +959,6 @@ public:
 
     /// Opens the manager.
     ReturnCode open(Handle rootWindow = Handle()) noexcept{
-        using namespace Detail;
-
         assert(isValid());
 
         if (d()->m_state != DsmState::Loaded){
@@ -1002,11 +987,11 @@ public:
 
         auto rc = dsm(nullptr, DataGroup::Control, Dat::Parent, Msg::OpenDsm, rootWindow);
         if (success(rc)){
-            resetMemFuncs();
+            Detail::resetMemFuncs();
             if (d()->m_appId.isDsmV2()){
-                EntryPoint e;
+                Detail::EntryPoint e;
                 if (success(dsm(nullptr, DataGroup::Control, Dat::EntryPoint, Msg::Get, e))){
-                    setMemFuncs(e.m_alloc, e.m_free, e.m_lock, e.m_unlock);
+                    Detail::setMemFuncs(e.m_alloc, e.m_free, e.m_lock, e.m_unlock);
                 }
             }
 

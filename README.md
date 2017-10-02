@@ -31,7 +31,7 @@ Requirements
 ------------
  - C++11
  - Windows, Linux, Mac OS X
- - Mac OS: Carbon
+ - Mac OS: Cocoa
  - Linux: `<mutex>`, `<condition_variable>`, -ldl
 
 Compilers
@@ -44,7 +44,7 @@ Platforms
 ---------
  - Windows: working on Windows 7 32/64bit, expected to work fine on any 32/64bit version
  - Linux: working on Ubuntu 10.04 i386, Ubuntu 14.04 i386
- - Mac OS: application might work, see issues, help welcome
+ - Mac OS: application mostly working on 10.5 and 10.11 32/64bit, data source unknown, see issues, help welcome
 
 Installation
 ------------

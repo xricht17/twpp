@@ -70,145 +70,240 @@ enum {
 #   if !defined(NOMINMAX)
 #       define NOMINMAX
 #   endif
-    extern "C" {
+extern "C" {
 #   include <windows.h>
-    }
+}
 #   define TWPP_DETAIL_CALLSTYLE PASCAL
 #   define TWPP_DETAIL_EXPORT __declspec(dllexport)
-    namespace Twpp {
+namespace Twpp {
 
-    namespace Detail {
+namespace Detail {
 
-    typedef HANDLE RawHandle;
+typedef HANDLE RawHandle;
 
 
-    namespace DsmLibOs {
+namespace DsmLibOs {
 
-    typedef HMODULE Handle;
-    static constexpr const Handle nullHandle = nullptr;
+typedef HMODULE Handle;
+static constexpr const Handle nullHandle = nullptr;
 
-    template<typename T>
-    static inline T resolve(Handle h) noexcept{
-        return reinterpret_cast<T>(::GetProcAddress(h, "DSM_Entry"));
-    }
+template<typename T>
+static inline T resolve(Handle h) noexcept{
+    return reinterpret_cast<T>(::GetProcAddress(h, "DSM_Entry"));
+}
 
 #   if defined(TWPP_DETAIL_OS_WIN32)
-    static inline Handle load(bool old) noexcept{
-        if (old){
-            auto h = ::LoadLibraryA("TWAIN_32.dll");
-            if (!h){
-                h = ::LoadLibraryA("TWAINDSM.dll");
-            }
-
-            return h;
-        } else {
-            auto h = ::LoadLibraryA("TWAINDSM.dll");
-            if (!h){
-                h = ::LoadLibraryA("TWAIN_32.dll");
-            }
-
-            return h;
+static inline Handle load(bool old) noexcept{
+    if (old){
+        auto h = ::LoadLibraryA("TWAIN_32.dll");
+        if (!h){
+            h = ::LoadLibraryA("TWAINDSM.dll");
         }
+
+        return h;
+    } else {
+        auto h = ::LoadLibraryA("TWAINDSM.dll");
+        if (!h){
+            h = ::LoadLibraryA("TWAIN_32.dll");
+        }
+
+        return h;
     }
+}
 #   else
-    static inline Handle load(bool) noexcept{
-        return ::LoadLibraryA("TWAINDSM.dll");
-    }
+static inline Handle load(bool) noexcept{
+    return ::LoadLibraryA("TWAINDSM.dll");
+}
 #   endif
 
-    static inline void unload(Handle h) noexcept{
-        ::FreeLibrary(h);
-    }
+static inline void unload(Handle h) noexcept{
+    ::FreeLibrary(h);
+}
 
-    } // namespace DsmLibOs
+} // namespace DsmLibOs
 
-    } // namespace Detail
+} // namespace Detail
 
-    } // namespace Twpp
+} // namespace Twpp
 
 
 // Mac OS
 #elif defined(__APPLE__)
 #   pragma message "No testing has been done on this platform, this framework might not work correctly."
 #   define TWPP_DETAIL_OS_MAC 1
-    extern "C" {
-#   if defined(__MWERKS__)
-#       include <Carbon.h>
-#   else
-#       include <Carbon/Carbon.h>
-#   endif
+#   include <limits>
+extern "C" {
+#   include <objc/objc.h>
+#   include <objc/objc-runtime.h>
+#   include <objc/NSObjCRuntime.h>
+#   include <CoreServices/CoreServices.h>
 #   include <dlfcn.h>
-    }
+}
 #   define TWPP_DETAIL_CALLSTYLE pascal
-    namespace Twpp {
+namespace Twpp {
 
-    namespace Detail {
+namespace Detail {
 
-    typedef Handle RawHandle;
+typedef Handle RawHandle;
 
 
-    namespace DsmLibOs {
+namespace DsmLibOs {
 
-    typedef void* Handle;
-    static constexpr const Handle nullHandle = nullptr;
+typedef void* Handle;
+static constexpr const Handle nullHandle = nullptr;
 
-    template<typename T>
-    static inline T resolve(Handle h) noexcept{
-        return reinterpret_cast<T>(::dlsym(h, "DSM_Entry"));
+template<typename T>
+static inline T resolve(Handle h) noexcept{
+    return reinterpret_cast<T>(::dlsym(h, "DSM_Entry"));
+}
+
+static inline Handle load(bool) noexcept{
+    return ::dlopen("/System/Library/Frameworks/TWAIN.framework/TWAIN", RTLD_LAZY);
+}
+
+static inline void unload(Handle h) noexcept{
+    ::dlclose(h);
+}
+
+} // namespace DsmLibOs
+
+template<typename>
+struct MacStatic {
+
+    static const ::Class g_autoreleasePool;
+    static const ::SEL g_release;
+    static const ::SEL g_alloc;
+    static const ::SEL g_init;
+
+    static const ::SEL g_nextEvent;
+    static const ::SEL g_postEvent;
+    static const ::SEL g_sendEvent;
+    static const ::id g_app;
+    static const ::id g_distantFuture;
+
+    static const ::Class g_event;
+    static const ::SEL g_otherEventWithType;
+
+};
+
+template<typename Dummy> const ::Class MacStatic<Dummy>::g_autoreleasePool = objc_getClass("NSAutoreleasePool");
+template<typename Dummy> const ::SEL MacStatic<Dummy>::g_release = sel_registerName("release");
+template<typename Dummy> const ::SEL MacStatic<Dummy>::g_alloc = sel_registerName("alloc");
+template<typename Dummy> const ::SEL MacStatic<Dummy>::g_init = sel_registerName("init");
+
+template<typename Dummy> const ::SEL MacStatic<Dummy>::g_nextEvent = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
+template<typename Dummy> const ::SEL MacStatic<Dummy>::g_postEvent = sel_registerName("postEvent:atStart:");
+template<typename Dummy> const ::SEL MacStatic<Dummy>::g_sendEvent = sel_registerName("sendEvent:");
+template<typename Dummy> const ::id MacStatic<Dummy>::g_app = objc_msgSend(reinterpret_cast<::id>(objc_getClass("NSApplication")), sel_registerName("sharedApplication"));
+template<typename Dummy> const ::id MacStatic<Dummy>::g_distantFuture = objc_msgSend(reinterpret_cast<::id>(objc_getClass("NSDate")), sel_registerName("distantFuture"));
+
+template<typename Dummy> const ::Class MacStatic<Dummy>::g_event = objc_getClass("NSEvent");
+template<typename Dummy> const ::SEL MacStatic<Dummy>::g_otherEventWithType = sel_registerName("otherEventWithType:location:modifierFlags:timestamp:windowNumber:context:subtype:data1:data2:");
+
+class NSAutoreleasePool {
+
+public:
+    NSAutoreleasePool() noexcept :
+        m_id(createPool()) {}
+
+    ~NSAutoreleasePool(){
+        release();
     }
 
-    static inline Handle load(bool) noexcept{
-        return ::dlopen("/System/Library/Frameworks/TWAIN.framework/TWAIN", RTLD_LAZY);
+    NSAutoreleasePool(const NSAutoreleasePool&) = delete;
+    NSAutoreleasePool& operator=(const NSAutoreleasePool&) = delete;
+
+    NSAutoreleasePool(NSAutoreleasePool&& o) noexcept :
+        m_id(o.m_id){
+
+        o.m_id = nullptr;
     }
 
-    static inline void unload(Handle h) noexcept{
-        ::dlclose(h);
+    NSAutoreleasePool& operator=(NSAutoreleasePool&& o) noexcept{
+        if (this != &o){
+            release();
+            std::swap(m_id, o.m_id);
+        }
+
+        return *this;
     }
 
-    } // namespace DsmLibOs
+    void release() noexcept{
+        if (m_id != nullptr){
+            objc_msgSend(m_id, MacStatic<void>::g_release);
+            m_id = nullptr;
+        }
+    }
 
-    } // namespace Detail
+private:
+    static ::id createPool() noexcept{
+        auto poolId = objc_msgSend(reinterpret_cast<::id>(MacStatic<void>::g_autoreleasePool), MacStatic<void>::g_alloc);
+        return objc_msgSend(poolId, MacStatic<void>::g_init);
+    }
 
-    } // namespace Twpp
+    ::id m_id;
+
+};
+
+namespace NSLoop {
+
+static constexpr ::NSUInteger NSAnyEventMask = std::numeric_limits<::NSUInteger>::max();
+static constexpr ::NSUInteger NSApplicationDefined = 15;
+
+static void processEvent() noexcept{
+    auto event = objc_msgSend(MacStatic<void>::g_app, MacStatic<void>::g_nextEvent, NSAnyEventMask, MacStatic<void>::g_distantFuture, kCFRunLoopDefaultMode, YES);
+    objc_msgSend(MacStatic<void>::g_app, MacStatic<void>::g_sendEvent, event);
+}
+
+static void postDummy() noexcept{
+    auto event = objc_msgSend(reinterpret_cast<::id>(MacStatic<void>::g_event), MacStatic<void>::g_otherEventWithType, NSApplicationDefined, nullptr, 1, 0.0, 0, nullptr, static_cast<short>(0), 0, 0);
+    objc_msgSend(MacStatic<void>::g_app, MacStatic<void>::g_postEvent, event, NO);
+}
+
+} // namespace NSLoop
+
+} // namespace Detail
+
+} // namespace Twpp
 
 // Linux
 #elif defined(__linux__)
 #   warning "No testing has been done on this platform, this framework might not work correctly."
 #   define TWPP_DETAIL_OS_LINUX 1
-    extern "C" {
+extern "C" {
 #   include <dlfcn.h>
-    }
+}
 #   define TWPP_DETAIL_CALLSTYLE
-    namespace Twpp {
+namespace Twpp {
 
-    namespace Detail {
+namespace Detail {
 
-    typedef void* RawHandle;
+typedef void* RawHandle;
 
 
-    namespace DsmLibOs {
+namespace DsmLibOs {
 
-    typedef void* Handle;
-    static constexpr const Handle nullHandle = nullptr;
+typedef void* Handle;
+static constexpr const Handle nullHandle = nullptr;
 
-    template<typename T>
-    static inline T resolve(Handle h) noexcept{
-        return reinterpret_cast<T>(::dlsym(h, "DSM_Entry"));
-    }
+template<typename T>
+static inline T resolve(Handle h) noexcept{
+    return reinterpret_cast<T>(::dlsym(h, "DSM_Entry"));
+}
 
-    static inline Handle load(bool) noexcept{
-        return ::dlopen("libtwaindsm.so", RTLD_LAZY);
-    }
+static inline Handle load(bool) noexcept{
+    return ::dlopen("libtwaindsm.so", RTLD_LAZY);
+}
 
-    static inline void unload(Handle h) noexcept{
-        ::dlclose(h);
-    }
+static inline void unload(Handle h) noexcept{
+    ::dlclose(h);
+}
 
-    } // namespace DsmLibOs
+} // namespace DsmLibOs
 
-    } // namespace Detail
+} // namespace Detail
 
-    } // namespace Twpp
+} // namespace Twpp
 
 // fail everything else
 #else
