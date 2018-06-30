@@ -2,7 +2,7 @@
 
 The MIT License (MIT)
 
-Copyright (c) 2015-2017 Martin Richter
+Copyright (c) 2015-2018 Martin Richter
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -156,6 +156,8 @@ public:
 
     SourceFromThis(SourceFromThis&&) = delete;
     SourceFromThis& operator=(SourceFromThis&&) = delete;
+
+    virtual ~SourceFromThis() noexcept = default;
 
 protected:
     /// Creates closed instance.
@@ -1918,6 +1920,31 @@ protected:
 
 private:
     ReturnCode notifyApp(Msg msg) noexcept{
+#if defined(TWPP_DETAIL_OS_WIN32)
+        if (g_dsm){
+            g_notifyEvent = msg;
+        }
+#endif
+        switch (msg){
+            case Msg::XferReady:
+                if (!inState(DsState::Enabled)){
+                    return ReturnCode::Failure;
+                }
+
+                setState(DsState::XferReady);
+                break;
+            case Msg::CloseDsOk:
+            case Msg::CloseDsReq:
+                if (!inState(DsState::Enabled, DsState::Xferring)){
+                    return ReturnCode::Failure;
+                }
+
+                setState(DsState::Enabled);
+                break;
+            default:
+                break;
+        }
+
         return g_entry(&m_srcId, &m_appId, DataGroup::Control, Dat::Null, msg, nullptr);
     }
 
@@ -1925,6 +1952,14 @@ private:
         if (!origin){
             return badProtocol();
         }
+
+#if defined(TWPP_DETAIL_OS_WIN32)
+        if (g_notifyEvent != Msg::Null && dg == DataGroup::Control && dat == Dat::Event && msg == Msg::ProcessEvent && data != nullptr){
+            static_cast<Event*>(data)->setMessage(g_notifyEvent);
+            g_notifyEvent = Msg::Null;
+            return {ReturnCode::DsEvent, ConditionCode::Success};
+        }
+#endif
 
         try {
             return call(*origin, dg, dat, msg, data);
@@ -2111,6 +2146,7 @@ private:
 
 #if defined(TWPP_DETAIL_OS_WIN32)
     static Detail::DsmLib g_dsm; // only old windows dsm requires this
+    static Msg g_notifyEvent; // old windows dsm does not handle async messages properly
 #endif
 
 };
@@ -2127,6 +2163,9 @@ Status SourceFromThis<Derived, proc>::g_lastStatus = ConditionCode::Bummer;
 #if defined(TWPP_DETAIL_OS_WIN32)
 template<typename Derived, bool proc>
 Detail::DsmLib SourceFromThis<Derived, proc>::g_dsm;
+
+template<typename Derived, bool proc>
+Msg SourceFromThis<Derived, proc>::g_notifyEvent = Msg::Null;
 #endif
 
 }
