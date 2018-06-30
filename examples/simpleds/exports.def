@@ -1,0 +1,3 @@
+LIBRARY SIMPLEDS
+EXPORTS
+    DS_Entry @1
