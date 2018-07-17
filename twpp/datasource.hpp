@@ -31,6 +31,32 @@ SOFTWARE.
 
 namespace Twpp {
 
+namespace Detail {
+
+TWPP_DETAIL_PACK_BEGIN
+struct AppCapability {
+
+    CapType m_cap;
+    ConType m_conType;
+    Handle m_cont;
+
+};
+TWPP_DETAIL_PACK_END
+
+struct DoNotFreeHandle {
+
+    DoNotFreeHandle(Handle handle){
+        Detail::GlobalMemFuncs<void>::doNotFreeHandle = handle;
+    }
+
+    ~DoNotFreeHandle(){
+        Detail::GlobalMemFuncs<void>::doNotFreeHandle = Handle();
+    }
+
+};
+
+}
+
 #define TWPP_ENTRY(SourceClass)\
     extern "C" TWPP_DETAIL_EXPORT Twpp::ReturnCode TWPP_DETAIL_CALLSTYLE \
     DS_Entry(Twpp::Identity* origin, Twpp::DataGroup dg, Twpp::Dat dat, Twpp::Msg msg, void* data){\
@@ -1961,8 +1987,11 @@ private:
         }
 #endif
 
+        bool isCapability = dg == DataGroup::Control && dat == Dat::Capability && data != nullptr;
         try {
-            return call(*origin, dg, dat, msg, data);
+            return isCapability
+                    ? callCapability(*origin, dg, dat, msg, data)
+                    : call(*origin, dg, dat, msg, data);
         } catch (const std::bad_alloc&){
             return {ReturnCode::Failure, ConditionCode::LowMemory};
         } catch (...){
@@ -1970,6 +1999,18 @@ private:
             // that would set static status, we want to set local one
             return bummer();
         }
+    }
+
+    Result callCapability(const Identity& origin, DataGroup dg, Dat dat, Msg msg, void* data){
+        // it is the responsibility of the APP to free capability handle
+        // we must assume the APP does not set the handle to zero after freeing it
+        // that would break capability (handle) move-assignment operator
+        // make sure such handle is not freed
+        Detail::AppCapability& cap = *static_cast<Detail::AppCapability*>(data);
+        Detail::DoNotFreeHandle doNotFree(cap.m_cont);
+        Detail::unused(doNotFree);
+
+        return call(origin, dg, dat, msg, data);
     }
 
 

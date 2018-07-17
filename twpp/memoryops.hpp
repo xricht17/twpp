@@ -88,6 +88,10 @@ struct GlobalMemFuncs {
     static MemLock lock;
     static MemUnlock unlock;
 
+#if defined(TWPP_IS_DS)
+    static Handle doNotFreeHandle;
+#endif
+
 };
 
 #if defined(TWPP_DETAIL_OS_WIN) || defined(TWPP_DETAIL_OS_MAC)
@@ -116,6 +120,11 @@ template<typename Dummy>
 MemUnlock GlobalMemFuncs<Dummy>::unlock = nullptr;
 #else
 #   error "default memory functions setup for your platform here"
+#endif
+
+#if defined(TWPP_IS_DS)
+    template<typename Dummy>
+    Handle GlobalMemFuncs<Dummy>::doNotFreeHandle;
 #endif
 
 inline static void setMemFuncs(MemAlloc alloc, MemFree free, MemLock lock, MemUnlock unlock) noexcept{
@@ -348,8 +357,6 @@ private:
 
 };
 
-
-
 /// Owns a handle and frees it upon destruction,
 /// unless `release` is called beforehand.
 class UniqueHandle {
@@ -411,7 +418,11 @@ public:
 
 private:
     void free() noexcept{
+#if defined(TWPP_IS_DS)
+        if (m_handle && m_handle != GlobalMemFuncs<void>::doNotFreeHandle){
+#else
         if (m_handle){
+#endif
             Detail::free(m_handle);
         }
     }
