@@ -271,8 +271,8 @@ Result SimpleDs::identityOpenDs(const Identity&){
         return ret;
     };
 
-    m_query[CapType::ICompression] = msgSupportGetAll;
-    m_caps[CapType::ICompression] = std::bind(enmGet<Compression>, _1, _2, Compression::None);
+    m_query[CapType::ICompression] = msgSupportGetAllSetReset;
+    m_caps[CapType::ICompression] = std::bind(enmGetSetConst<Compression>, _1, _2, Compression::None);
 
 
     m_query[CapType::IBitDepth] = msgSupportGetAllSetReset;
@@ -281,8 +281,8 @@ Result SimpleDs::identityOpenDs(const Identity&){
     m_query[CapType::IBitOrder] = msgSupportGetAllSetReset;
     m_caps[CapType::IBitOrder] = std::bind(enmGetSetConst<BitOrder>, _1, _2, BitOrder::MsbFirst);
 
-    m_query[CapType::IPlanarChunky] = msgSupportGetAll;
-    m_caps[CapType::IPlanarChunky] = std::bind(enmGet<PlanarChunky>, _1, _2, PlanarChunky::Chunky);
+    m_query[CapType::IPlanarChunky] = msgSupportGetAllSetReset;
+    m_caps[CapType::IPlanarChunky] = std::bind(enmGetSetConst<PlanarChunky>, _1, _2, PlanarChunky::Chunky);
 
     m_query[CapType::IPhysicalWidth] = msgSupportGetAll;
     m_caps[CapType::IPhysicalWidth] = std::bind(oneValGet<Fix32>, _1, _2, Fix32(static_cast<float>(header()->biWidth) / RESOLUTION));
