@@ -412,6 +412,14 @@ Result SimpleDs::userInterfaceEnable(const Identity&, UserInterface& ui){
     m_pendingXfers = 1;
     m_memXferYOff = 0;
 
+    if (!ui.showUi()){
+        // this is an exception when we want to set state explicitly, notifyXferReady can be called only in enabled state
+        // with hidden UI, the usual workflow DsState::Enabled -> notifyXferReady() -> DsState::XferReady is a single step
+        setState(DsState::Enabled);
+        auto notified = notifyXferReady();
+        return Twpp::success(notified) ? success() : bummer();
+    }
+
     application = std::unique_ptr<QApplication>(new QApplication(argc, argv));
     QWidget* parent = nullptr;
 
