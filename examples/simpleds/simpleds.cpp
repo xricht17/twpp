@@ -203,7 +203,7 @@ Result SimpleDs::eventProcess(const Identity&, Event& event){
     // Qt needs to process its events, otherwise the GUI will appear frozen
     // this is Windows-only method, Linux and macOS behave differently
     if (static_cast<bool>(application)){
-        QApplication::processEvents();
+        // QApplication::processEvents(); - TODO: needs more investigation; results in freeze when attempting to scan using old DSM
         QApplication::sendPostedEvents();
     }
 
