@@ -1194,7 +1194,9 @@ protected:
 
                     rc = userInterfaceEnable(origin, data);
                     if (Twpp::success(rc) || rc == ReturnCode::CheckStatus){
-                        setState(DsState::Enabled);
+                        if (inState(DsState::Open)){ // allow userInterfaceEnable to transfer to higher states
+                            setState(DsState::Enabled);
+                        }
                     }
 
                     return rc;
@@ -1946,18 +1948,12 @@ protected:
 
 private:
     ReturnCode notifyApp(Msg msg) noexcept{
-#if defined(TWPP_DETAIL_OS_WIN32)
-        if (g_dsm){
-            g_notifyEvent = msg;
-        }
-#endif
         switch (msg){
             case Msg::XferReady:
                 if (!inState(DsState::Enabled)){
                     return ReturnCode::Failure;
                 }
 
-                setState(DsState::XferReady);
                 break;
             case Msg::CloseDsOk:
             case Msg::CloseDsReq:
@@ -1965,27 +1961,33 @@ private:
                     return ReturnCode::Failure;
                 }
 
-                setState(DsState::Enabled);
                 break;
             default:
                 break;
         }
 
-        return g_entry(&m_srcId, &m_appId, DataGroup::Control, Dat::Null, msg, nullptr);
+        auto rc = g_entry(&m_srcId, &m_appId, DataGroup::Control, Dat::Null, msg, nullptr);
+        if (Twpp::success(rc)){
+            switch (msg){
+                case Msg::XferReady:
+                    setState(DsState::XferReady);
+                    break;
+                case Msg::CloseDsOk:
+                case Msg::CloseDsReq:
+                    setState(DsState::Enabled);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return rc;
     }
 
     Result callRoot(Identity* origin, DataGroup dg, Dat dat, Msg msg, void* data) noexcept{
         if (!origin){
             return badProtocol();
         }
-
-#if defined(TWPP_DETAIL_OS_WIN32)
-        if (g_notifyEvent != Msg::Null && dg == DataGroup::Control && dat == Dat::Event && msg == Msg::ProcessEvent && data != nullptr){
-            static_cast<Event*>(data)->setMessage(g_notifyEvent);
-            g_notifyEvent = Msg::Null;
-            return {ReturnCode::DsEvent, ConditionCode::Success};
-        }
-#endif
 
         bool isCapability = dg == DataGroup::Control && dat == Dat::Capability && data != nullptr;
         try {
@@ -2187,7 +2189,6 @@ private:
 
 #if defined(TWPP_DETAIL_OS_WIN32)
     static Detail::DsmLib g_dsm; // only old windows dsm requires this
-    static Msg g_notifyEvent; // old windows dsm does not handle async messages properly
 #endif
 
 };
@@ -2204,9 +2205,6 @@ Status SourceFromThis<Derived, proc>::g_lastStatus = ConditionCode::Bummer;
 #if defined(TWPP_DETAIL_OS_WIN32)
 template<typename Derived, bool proc>
 Detail::DsmLib SourceFromThis<Derived, proc>::g_dsm;
-
-template<typename Derived, bool proc>
-Msg SourceFromThis<Derived, proc>::g_notifyEvent = Msg::Null;
 #endif
 
 }
