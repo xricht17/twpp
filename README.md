@@ -31,8 +31,9 @@ Requirements
 ------------
  - C++11
  - Windows, Linux, Mac OS X
+ - Windows: link `user32.lib`
  - Mac OS: Cocoa
- - Linux: `<mutex>`, `<condition_variable>`, -ldl
+ - Linux: `<mutex>`, `<condition_variable>`, `-ldl`
 
 Compilers
 ---------
