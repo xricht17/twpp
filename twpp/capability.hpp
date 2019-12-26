@@ -2,7 +2,7 @@
 
 The MIT License (MIT)
 
-Copyright (c) 2015 Martin Richter
+Copyright (c) 2015, 2019 Martin Richter
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1538,7 +1538,7 @@ public:
     /// \throw std::bad_alloc
     template<Type type, typename DataType>
     static Capability createRange(CapType cap, DataType min, DataType max, DataType step, DataType curr, DataType def){
-        Capability ret(cap, ConType::Range, type, sizeof(Detail::OneValueData<DataType>));
+        Capability ret(cap, ConType::Range, type, sizeof(Detail::RangeData<DataType>));
         auto rng = ret.range<type, DataType>();
         rng.setMinValue(min);
         rng.setMaxValue(max);
