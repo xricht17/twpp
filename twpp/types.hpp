@@ -2,7 +2,7 @@
 
 The MIT License (MIT)
 
-Copyright (c) 2015 Martin Richter
+Copyright (c) 2015, 2019 Martin Richter
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -81,6 +81,14 @@ private:
 
 };
 TWPP_DETAIL_PACK_END
+
+static inline constexpr bool operator==(Handle a, Handle b) noexcept{
+    return a.raw() == b.raw();
+}
+
+static inline constexpr bool operator!=(Handle a, Handle b) noexcept{
+    return !(a == b);
+}
 
 }
 
