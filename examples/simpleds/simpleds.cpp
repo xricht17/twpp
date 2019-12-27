@@ -39,6 +39,7 @@ static std::unique_ptr<ScanDialog> scanDialog;
 
 #if TWPP_DETAIL_OS_WIN
 static std::unique_ptr<QWidget> guiBridge;
+static HWND appWindowModal = nullptr;
 #endif
 
 const Identity& SimpleDs::defaultIdentity() noexcept{
@@ -401,6 +402,11 @@ Result SimpleDs::userInterfaceDisable(const Identity&, UserInterface&){
     scanDialog.reset();
 
 #if TWPP_DETAIL_OS_WIN
+    if (appWindowModal){
+        EnableWindow(appWindowModal, true);
+        appWindowModal = nullptr;
+    }
+
     guiBridge.reset();
 #endif
 
@@ -435,8 +441,8 @@ Result SimpleDs::userInterfaceEnable(const Identity&, UserInterface& ui){
         SetParent(bridgeWindow, appWindow);
 
         if (ui.modalUi()){
-            long appFlags = GetWindowLong(appWindow, GWL_STYLE);
-            SetWindowLong(appWindow, GWL_STYLE, appFlags | WS_DISABLED);
+            appWindowModal = appWindow;
+            EnableWindow(appWindowModal, false);
         }
     }
 
