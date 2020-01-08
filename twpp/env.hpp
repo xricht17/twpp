@@ -186,19 +186,24 @@ struct MacStatic {
 
 };
 
-template<typename Dummy> const ::Class MacStatic<Dummy>::g_autoreleasePool = objc_getClass("NSAutoreleasePool");
-template<typename Dummy> const ::SEL MacStatic<Dummy>::g_release = sel_registerName("release");
-template<typename Dummy> const ::SEL MacStatic<Dummy>::g_alloc = sel_registerName("alloc");
-template<typename Dummy> const ::SEL MacStatic<Dummy>::g_init = sel_registerName("init");
+template<typename... T>
+static inline ::id msgSend(::id self, ::SEL cmd, T... args) noexcept{
+    return reinterpret_cast<::id (*)(::id, ::SEL, T...)>(::objc_msgSend)(self, cmd, args...);
+}
 
-template<typename Dummy> const ::SEL MacStatic<Dummy>::g_nextEvent = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
-template<typename Dummy> const ::SEL MacStatic<Dummy>::g_postEvent = sel_registerName("postEvent:atStart:");
-template<typename Dummy> const ::SEL MacStatic<Dummy>::g_sendEvent = sel_registerName("sendEvent:");
-template<typename Dummy> const ::id MacStatic<Dummy>::g_app = objc_msgSend(reinterpret_cast<::id>(objc_getClass("NSApplication")), sel_registerName("sharedApplication"));
-template<typename Dummy> const ::id MacStatic<Dummy>::g_distantFuture = objc_msgSend(reinterpret_cast<::id>(objc_getClass("NSDate")), sel_registerName("distantFuture"));
+template<typename Dummy> const ::Class MacStatic<Dummy>::g_autoreleasePool = ::objc_getClass("NSAutoreleasePool");
+template<typename Dummy> const ::SEL MacStatic<Dummy>::g_release = ::sel_registerName("release");
+template<typename Dummy> const ::SEL MacStatic<Dummy>::g_alloc = ::sel_registerName("alloc");
+template<typename Dummy> const ::SEL MacStatic<Dummy>::g_init = ::sel_registerName("init");
 
-template<typename Dummy> const ::Class MacStatic<Dummy>::g_event = objc_getClass("NSEvent");
-template<typename Dummy> const ::SEL MacStatic<Dummy>::g_otherEventWithType = sel_registerName("otherEventWithType:location:modifierFlags:timestamp:windowNumber:context:subtype:data1:data2:");
+template<typename Dummy> const ::SEL MacStatic<Dummy>::g_nextEvent = ::sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
+template<typename Dummy> const ::SEL MacStatic<Dummy>::g_postEvent = ::sel_registerName("postEvent:atStart:");
+template<typename Dummy> const ::SEL MacStatic<Dummy>::g_sendEvent = ::sel_registerName("sendEvent:");
+template<typename Dummy> const ::id MacStatic<Dummy>::g_app = msgSend(reinterpret_cast<::id>(::objc_getClass("NSApplication")), ::sel_registerName("sharedApplication"));
+template<typename Dummy> const ::id MacStatic<Dummy>::g_distantFuture = msgSend(reinterpret_cast<::id>(::objc_getClass("NSDate")), ::sel_registerName("distantFuture"));
+
+template<typename Dummy> const ::Class MacStatic<Dummy>::g_event = ::objc_getClass("NSEvent");
+template<typename Dummy> const ::SEL MacStatic<Dummy>::g_otherEventWithType = ::sel_registerName("otherEventWithType:location:modifierFlags:timestamp:windowNumber:context:subtype:data1:data2:");
 
 class NSAutoreleasePool {
 
@@ -230,15 +235,15 @@ public:
 
     void release() noexcept{
         if (m_id != nullptr){
-            objc_msgSend(m_id, MacStatic<void>::g_release);
+            msgSend(m_id, MacStatic<void>::g_release);
             m_id = nullptr;
         }
     }
 
 private:
     static ::id createPool() noexcept{
-        auto poolId = objc_msgSend(reinterpret_cast<::id>(MacStatic<void>::g_autoreleasePool), MacStatic<void>::g_alloc);
-        return objc_msgSend(poolId, MacStatic<void>::g_init);
+        auto poolId = msgSend(reinterpret_cast<::id>(MacStatic<void>::g_autoreleasePool), MacStatic<void>::g_alloc);
+        return msgSend(poolId, MacStatic<void>::g_init);
     }
 
     ::id m_id;
@@ -251,13 +256,14 @@ static constexpr ::NSUInteger NSAnyEventMask = std::numeric_limits<::NSUInteger>
 static constexpr ::NSUInteger NSApplicationDefined = 15;
 
 static void processEvent() noexcept{
-    auto event = objc_msgSend(MacStatic<void>::g_app, MacStatic<void>::g_nextEvent, NSAnyEventMask, MacStatic<void>::g_distantFuture, kCFRunLoopDefaultMode, YES);
-    objc_msgSend(MacStatic<void>::g_app, MacStatic<void>::g_sendEvent, event);
+    auto event = msgSend<::NSUInteger, ::id, ::CFRunLoopMode, ::BOOL>(MacStatic<void>::g_app, MacStatic<void>::g_nextEvent, NSAnyEventMask, MacStatic<void>::g_distantFuture, ::kCFRunLoopDefaultMode, YES);
+    msgSend(MacStatic<void>::g_app, MacStatic<void>::g_sendEvent, event);
 }
 
 static void postDummy() noexcept{
-    auto event = objc_msgSend(reinterpret_cast<::id>(MacStatic<void>::g_event), MacStatic<void>::g_otherEventWithType, NSApplicationDefined, nullptr, 1, 0.0, 0, nullptr, static_cast<short>(0), 0, 0);
-    objc_msgSend(MacStatic<void>::g_app, MacStatic<void>::g_postEvent, event, NO);
+    auto event = msgSend<::NSUInteger, ::id, ::NSUInteger, double, ::NSInteger, ::id, short, ::NSInteger, ::NSInteger>
+            (reinterpret_cast<::id>(MacStatic<void>::g_event), MacStatic<void>::g_otherEventWithType, NSApplicationDefined, nullptr, 1, 0.0, 0, nullptr, 0, 0, 0);
+    msgSend(MacStatic<void>::g_app, MacStatic<void>::g_postEvent, event, NO);
 }
 
 } // namespace NSLoop
