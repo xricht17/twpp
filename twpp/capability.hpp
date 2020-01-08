@@ -1289,7 +1289,7 @@ public:
         Capability ret(cap, ConType::OneValue, type, sizeof(Detail::OneValueData<DataType>));
         auto ov = ret.oneValue<type, DataType>();
         ov.setItem(value);
-        return std::move(ret);
+        return ret;
     }
 
     /// Creates capability holding OneValue container.
@@ -1333,7 +1333,7 @@ public:
         Capability ret(cap, ConType::Array, type, sizeof(Detail::ArrayData<DataType>) - sizeof(DataType) + size * sizeof(DataType));
         auto arr = ret.array<type, DataType>();
         arr.m_data->m_numItems = size;
-        return std::move(ret);
+        return ret;
     }
 
     /// Creates capability holding Array container.
@@ -1363,7 +1363,7 @@ public:
             i++;
         }
 
-        return std::move(ret);
+        return ret;
     }
 
     /// Creates capability holding Array container.
@@ -1430,7 +1430,7 @@ public:
         enm.m_data->m_numItems = size;
         enm.m_data->m_currIndex = currIndex;
         enm.m_data->m_defIndex = defIndex;
-        return std::move(ret);
+        return ret;
     }
 
     /// Creates capability holding Enumeration container.
@@ -1464,7 +1464,7 @@ public:
             i++;
         }
 
-        return std::move(ret);
+        return ret;
     }
 
     /// Creates capability holding Enumeration container.
@@ -1545,7 +1545,7 @@ public:
         rng.setStepSize(step);
         rng.setCurrentValue(curr);
         rng.setDefaultValue(def);
-        return std::move(ret);
+        return ret;
     }
 
     /// Creates capability holding Range container.
