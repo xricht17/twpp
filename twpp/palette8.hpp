@@ -36,7 +36,7 @@ namespace Detail {
 
 // specialization for Element8
 // we also want to set index of the element when placing it inside array
-template<std::size_t arraySize, UInt8... i>
+template<std::size_t arraySize, std::size_t... i>
 struct FixedArrayData<Element8, arraySize, IndexList<i...> > {
 
     static constexpr Element8 updateIndex(UInt8 index, const Element8& e) noexcept{
