@@ -32,7 +32,7 @@ Requirements
  - C++11
  - Windows, Linux, Mac OS X
  - Windows: link `user32.lib`
- - Mac OS: Cocoa
+ - Mac OS: Cocoa, `libobjc`
  - Linux: `<mutex>`, `<condition_variable>`, `-ldl`
 
 Compilers
