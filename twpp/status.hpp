@@ -111,7 +111,7 @@ public:
     }
 
     /// Creates a new status utf8 containing a copy of the supplied string.
-    /// \param status
+    /// \param status Status to be translated.
     /// \param str Utf-8 string to copy, must be null-terminated.
     /// \throw RangeException When string is too long, could not insert null terminator.
     /// \throw std::bad_alloc
@@ -129,7 +129,7 @@ public:
     }
 
     /// Creates a new status utf8 containing a copy of the supplied string.
-    /// \param status
+    /// \param status Status to be translated.
     /// \param str Utf-8 string to copy.
     /// \throw RangeException When string is too long, could not insert null terminator.
     /// \throw std::bad_alloc
@@ -150,7 +150,7 @@ public:
     }
 
     /// Creates a new StatusUtf8 containing a copy of the supplied string.
-    /// \param status
+    /// \param status Status to be translated.
     /// \param str Utf-8 string to copy, null terminator is not required.
     /// \param strSize {Number of bytes to copy including null terminator.
     ///                     Null terminator is inserted automatically.}

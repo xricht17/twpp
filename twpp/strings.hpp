@@ -170,7 +170,7 @@ public:
     /// Sets string data.
     /// Copies as much data as possible, discarding the rest.
     /// The data needn't be null terminated.
-    /// \param str Data to copy.
+    /// \param data Data to copy.
     /// \param size Maximal number of bytes to copy.
     /// \return Number of bytes copied - the new length of this string.
     UInt32 setData(const char* data, UInt32 size) noexcept{
@@ -205,7 +205,7 @@ public:
     /// Sets string data from container (e.g. std::string).
     /// Copies as much data as possible, discarding the rest.
     /// The string needn't be null terminated.
-    /// \tparam Contaier Container type.
+    /// \tparam Container Container type.
     /// \param cont Container with data to be copied.
     /// \return Number of characters copied - the new length of this string.
     template<typename Container, typename = typename std::enable_if<std::is_same<typename Container::value_type, char>::value>::type>
