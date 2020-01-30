@@ -2,7 +2,7 @@
 
 The MIT License (MIT)
 
-Copyright (c) 2015-2017 Martin Richter
+Copyright (c) 2015-2020 Martin Richter
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -287,12 +287,12 @@ public:
         }
 
 #if defined(TWPP_DETAIL_OS_WIN)
-        MSG msg;
+        ::MSG msg;
         memset(&msg, 0, sizeof(msg));
 
         Event event(&msg, Msg::Null);
         while (d()->m_readyMsg == Msg::Null){
-            auto val = GetMessage(&msg, nullptr, 0, 0);
+            auto val = ::GetMessage(&msg, nullptr, 0, 0);
             if (val == 0 || val == -1){ // 0 ... WM_QUIT; -1 ... error; otherwise ... success
                 return ReturnCode::Failure;
             }
@@ -300,8 +300,8 @@ public:
             auto rc = dsm(DataGroup::Control, Dat::Event, Msg::ProcessEvent, event);
             switch (rc){
                 case ReturnCode::NotDsEvent:
-                    TranslateMessage(&msg);
-                    DispatchMessage(&msg);
+                    ::TranslateMessage(&msg);
+                    ::DispatchMessage(&msg);
                     // fallthrough
                 case ReturnCode::DsEvent:
                     if (d()->m_readyMsg == Msg::Null){
@@ -331,8 +331,11 @@ public:
 #else
 #   error "waitReady for your platform here"
 #endif
+        // reset m_readyMsg so that subsequent waitReady calls work correctly
+        auto readyMsg = d()->m_readyMsg;
+        d()->m_readyMsg = Msg::Null;
 
-        switch (d()->m_readyMsg){
+        switch (readyMsg){
             case Msg::XferReady: // ok/scan button <=> Msg::EnableDs
                 d()->m_state = DsState::XferReady;
             case Msg::CloseDsOk: // ok/scan button <=> Msg::EnableDsUiOnly
@@ -342,7 +345,6 @@ public:
                 return ReturnCode::Cancel;
 
             case Msg::DeviceEvent:
-                d()->m_readyMsg = Msg::Null;
                 return ReturnCode::CheckStatus;
 
             default:
@@ -356,7 +358,7 @@ public:
     /// \return {Failure on error, Cancel on CANCEL button, Success on SAVE or SCAN button,
     ///          CheckStatus on device event. NotDsEvent OR DsEvent when not ready yet.}
 #if defined (TWPP_DETAIL_OS_WIN)
-    ReturnCode processEvent(MSG* event){
+    ReturnCode processEvent(::MSG* event){
         Event twEvent(event, Msg::Null);
         auto rc = dsm(DataGroup::Control, Dat::Event, Msg::ProcessEvent, twEvent);
         switch (rc){
@@ -373,6 +375,7 @@ public:
         }
 
         auto msg = d()->m_readyMsg;
+        d()->m_readyMsg = Msg::Null;
 
 #elif defined(TWPP_DETAIL_OS_LINUX) || defined(TWPP_DETAIL_OS_MAC)
     ReturnCode processEvent(){
@@ -381,9 +384,11 @@ public:
 
 #   if defined(TWPP_DETAIL_OS_MAC)
         auto msg = d()->m_readyMsg;
+        d()->m_readyMsg = Msg::Null;
 #   else
         std::unique_lock<std::mutex> lock(d()->m_cbMutex);
         auto msg = d()->m_readyMsg;
+        d()->m_readyMsg = Msg::Null;
         lock.unlock();
 #   endif
 
@@ -401,7 +406,6 @@ public:
                 return ReturnCode::Cancel;
 
             case Msg::DeviceEvent:
-                d()->m_readyMsg = Msg::Null;
                 return ReturnCode::CheckStatus;
 
             case Msg::Null:
