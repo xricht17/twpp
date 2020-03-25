@@ -243,16 +243,28 @@ public:
     }
 
     /// Enables the source, showing its GUI if requested.
-    /// A call to `waitReady` must follow, advanced users may look at `processEvent` on Windows.
+    /// A call to `waitReady` must follow, advanced users may look at `processEvent`.
+    /// Returns `ReturnCode::CheckStatus` if the source could not be enabled without UI (ui.showUi = false),
+    /// but was enabled with UI instead (as if ui.showUi = true).
     /// \param ui GUI settings.
     /// \param uiOnly Whether the GUI should only be used to change values, not scan.
     ReturnCode enable(const UserInterface& ui, bool uiOnly = false) noexcept{
+        // speculatively move state to allow callback to set readyMsg during dsm call
+        auto oldUiHandle = d()->m_uiHandle;
+        auto oldState = d()->m_state;
+        auto oldReadyMsg = d()->m_readyMsg;
+
+        d()->m_uiHandle = ui.parent();
+        d()->m_state = DsState::Enabled;
+        d()->m_readyMsg = Msg::Null;
+
         auto uiTmp = ui; // allow ui to be const, dsm doesnt take const
-        ReturnCode rc = dsm(DataGroup::Control, Dat::UserInterface, uiOnly ? Msg::EnableDsUiOnly : Msg::EnableDs, uiTmp);
-        if (success(rc) || (!uiOnly && rc == ReturnCode::CheckStatus)){
-            d()->m_readyMsg = Msg::Null;
-            d()->m_uiHandle = ui.parent();
-            d()->m_state = DsState::Enabled;
+        ReturnCode rc = dsm(DataGroup::Control, Dat::UserInterface, uiOnly ? Msg::EnableDsUiOnly : Msg::EnableDs, uiTmp);       
+        if (!success(rc) && (ui.showUi() || rc != ReturnCode::CheckStatus)){
+            // revert the speculative state move on error
+            d()->m_uiHandle = oldUiHandle;
+            d()->m_state = oldState;
+            d()->m_readyMsg = oldReadyMsg;
         }
 
         return rc;
@@ -288,7 +300,7 @@ public:
 
 #if defined(TWPP_DETAIL_OS_WIN)
         ::MSG msg;
-        memset(&msg, 0, sizeof(msg));
+        ::memset(&msg, 0, sizeof(msg));
 
         Event event(&msg, Msg::Null);
         while (d()->m_readyMsg == Msg::Null){
@@ -846,7 +858,7 @@ private:
             src->m_readyMsg = msg;
 
 #if defined(TWPP_DETAIL_OS_WIN)
-            PostMessageA(static_cast<HWND>(src->m_mgr->m_rootWindow.raw()), WM_NULL, 0, 0);
+            ::PostMessageA(static_cast<HWND>(src->m_mgr->m_rootWindow.raw()), WM_NULL, 0, 0);
 #elif defined(TWPP_DETAIL_OS_LINUX)
             src->m_cbCond.notify_one();
 #elif defined(TWPP_DETAIL_OS_MAC)
