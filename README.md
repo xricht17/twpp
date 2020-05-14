@@ -92,19 +92,19 @@ mgr.open(); // opens DSM
 With these two operations done, we can now perform operations on DSM, and ultimately open a data source (DS). Don't forget to check return values, any operation on DSM may fail! There are several ways to get a `Source` object:
 
 ```c++
-// all available DSs
+// OPTION 1: get all available DSs
 std::vector<Source> sources;
 mgr.sources(sources);
 
-// default DS
+// OPTION 2: get default DS
 Source defSrc;
 mgr.defaultSource(defSrc);
 
-// show DS selection dialog, only on Windows and Mac OS
+// OPTION 3: show DS selection dialog and let the user decide, available only on Windows and Mac OS
 Source userSrc;
 mgr.showSourceDialog(userSrc);
 
-// if we know the product name and manufacturer
+// OPTION 4: if we know the product name and manufacturer beforehand
 Source src = mgr.createSource("product name", "manufacturer");
 ```
 
