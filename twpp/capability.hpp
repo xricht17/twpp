@@ -425,8 +425,6 @@ private:
 // disable OneValue for incompatible types
 template<typename DataType>
 class OneValue<Type::DontCare, DataType>;
-template<typename DataType>
-class OneValue<Type::Handle, DataType>;
 
 
 /// Capability container holding an array of values.
@@ -1608,6 +1606,15 @@ public:
     /// Useful for retrieving data from data source.
     explicit Capability(CapType cap) noexcept :
         m_cap(cap), m_conType(ConType::DontCare), m_cont(){}
+
+    ~Capability() noexcept{
+        if (m_cont && m_conType == ConType::OneValue) {
+            OneValue<Type::Handle> container(m_cont.get());
+            if (container.type() == Type::Handle) {
+                Detail::UniqueHandle(container.item());
+            }
+        }
+    }
 
     Capability(Capability&&) = default;
     Capability& operator=(Capability&&) = default;
