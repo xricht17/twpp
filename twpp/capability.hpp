@@ -1865,6 +1865,20 @@ public:
     }
 
 
+    /// Whether the current item can be retrieved.
+    /// The container must be one of Enumeration, OneValue, and Range.
+    bool hasCurrentItem() const noexcept{
+        switch (m_conType) {
+            case ConType::OneValue:
+            case ConType::Enumeration:
+            case ConType::Range:
+                return m_cont;
+
+            default:
+                return false;
+        }
+    }
+
     /// Returns a copy of the current item of this capability.
     /// Can be used only with Enumeration, OneValue, and Range containers.
     /// \tparam type ID of the internal data type.
@@ -2167,6 +2181,12 @@ public:
         return m_cap.data<cap>();
     }
 
+
+    /// Whether the current item can be retrieved.
+    /// The container must be one of Enumeration, OneValue, and Range.
+    bool hasCurrentItem() const noexcept{
+        return m_cap.hasCurrentItem();
+    }
 
     /// Returns a copy of the current item of this capability.
     /// Can be used only with Enumeration, OneValue, and Range containers.
