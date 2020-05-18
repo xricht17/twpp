@@ -2,7 +2,7 @@
 
 The MIT License (MIT)
 
-Copyright (c) 2015, 2019 Martin Richter
+Copyright (c) 2015, 2019-2020 Martin Richter
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1210,10 +1210,18 @@ struct CurrentItemImpl {
 };
 
 /// Capability current item implementation.
-/// This specialization can handles numeric values only.
+/// This specialization can handle numeric values only.
 /// Ranges included.
 template<Type type, typename DataType>
 struct CurrentItemImpl<type, DataType, true> {
+    static DataType item(Capability& cap);
+};
+
+/// Capability current item implementation.
+/// This specialization can handle handles only.
+/// OneValue only.
+template<typename DataType>
+struct CurrentItemImpl<Type::Handle, DataType, false> {
     static DataType item(Capability& cap);
 };
 
@@ -2291,6 +2299,14 @@ DataType CurrentItemImpl<type, DataType, true>::item(Capability& cap){
         default:
             throw ContainerException();
     }
+}
+
+/// \throw DataException
+/// \throw ContainerException
+/// \throw ItemTypeException
+template<typename DataType>
+DataType CurrentItemImpl<Type::Handle, DataType, false>::item(Capability& cap){
+    return cap.oneValue<Type::Handle, DataType>().item();
 }
 
 }
