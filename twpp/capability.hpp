@@ -1154,7 +1154,7 @@ public:
             case ConType::Range: {
                 auto& rng = *reinterpret_cast<Detail::RangeData<DataType>*>(m_data.data());
                 if (rng.m_stepSize != DataType()){
-                    return static_cast<UInt32>((Detail::abs(rng.m_maxValue - rng.m_minValue) / rng.m_stepSize).toFloat()) + 1;
+                    return static_cast<UInt32>(static_cast<float>(Detail::abs(rng.m_maxValue - rng.m_minValue) / rng.m_stepSize)) + 1;
                 } else {
                     return 0;
                 }
