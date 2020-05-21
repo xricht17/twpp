@@ -147,7 +147,7 @@ template<> struct Cap<CapType::IPlanarChunky> {static constexpr const Type twty 
 template<> struct Cap<CapType::IRotation> {static constexpr const Type twty = Type::Fix32; typedef Fix32 DataType;};
 template<> struct Cap<CapType::IShadow> {static constexpr const Type twty = Type::Fix32; typedef Fix32 DataType;};
 template<> struct Cap<CapType::ISupportedBarCodeTypes> {static constexpr const Type twty = Type::UInt16; typedef BarCodeType DataType;};
-template<> struct Cap<CapType::ISupportedExtImageInfo> {static constexpr const Type twty = Type::UInt16; typedef Twpp::InfoId DataType;};
+template<> struct Cap<CapType::ISupportedExtImageInfo> {static constexpr const Type twty = Type::UInt16; typedef InfoId DataType;};
 template<> struct Cap<CapType::ISupportedPatchCodeTypes> {static constexpr const Type twty = Type::UInt16; typedef PatchCode DataType;};
 template<> struct Cap<CapType::ISupportedSizes> {static constexpr const Type twty = Type::UInt16; typedef PaperSize DataType;};
 template<> struct Cap<CapType::IThreshold> {static constexpr const Type twty = Type::Fix32; typedef Fix32 DataType;};
@@ -192,7 +192,7 @@ template<> struct Cap<CapType::Segmented> {static constexpr const Type twty = Ty
 template<> struct Cap<CapType::SerialNumber> {static constexpr const Type twty = Type::Str255; typedef Str255 DataType;};
 template<> struct Cap<CapType::SupportedCaps> {static constexpr const Type twty = Type::UInt16; typedef CapType DataType;};
 template<> struct Cap<CapType::SupportedCapsSegmentUnique> {static constexpr const Type twty = Type::UInt16; typedef CapType DataType;};
-template<> struct Cap<CapType::SupportedDats> {static constexpr const Type twty = Type::UInt32; typedef UInt32 DataType;};
+template<> struct Cap<CapType::SupportedDats> {static constexpr const Type twty = Type::UInt32; typedef SupportedDat DataType;};
 template<> struct Cap<CapType::ThumbnailsEnabled> {static constexpr const Type twty = Type::Bool; typedef Bool DataType;};
 template<> struct Cap<CapType::TimeBeforeFirstCapture> {static constexpr const Type twty = Type::Int32; typedef Int32 DataType;};
 template<> struct Cap<CapType::TimeBetweenCaptures> {static constexpr const Type twty = Type::Int32; typedef Int32 DataType;};

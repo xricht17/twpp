@@ -59,6 +59,7 @@ enum {
 // Windows
 #if defined(WIN32) || defined(_WIN32) || defined(WIN64) || defined(_WIN64)
 #   define TWPP_DETAIL_OS_WIN 1
+#   define TWPP_DETAIL_ENDIAN_LITTLE
 #   if defined(WIN64) || defined(_WIN64)
 #       define TWPP_DETAIL_OS_WIN64 1
 #   else
@@ -138,7 +139,15 @@ extern "C" {
 #   include <objc/NSObjCRuntime.h>
 #   include <CoreServices/CoreServices.h>
 #   include <dlfcn.h>
+#   include <machine/endian.h>
 }
+#   if __BYTE_ORDER == __LITTLE_ENDIAN
+#       define TWPP_DETAIL_ENDIAN_LITTLE
+#   elif __BYTE_ORDER == __BIG_ENDIAN
+#       define TWPP_DETAIL_ENDIAN_BIG
+#   else
+#       error "unsupported endianness"
+#   endif
 #   define TWPP_DETAIL_CALLSTYLE pascal
 namespace Twpp {
 
@@ -278,7 +287,15 @@ static void postDummy() noexcept{
 #   define TWPP_DETAIL_OS_LINUX 1
 extern "C" {
 #   include <dlfcn.h>
+#   include <endian.h>
 }
+#   if __BYTE_ORDER == __LITTLE_ENDIAN
+#       define TWPP_DETAIL_ENDIAN_LITTLE
+#   elif __BYTE_ORDER == __BIG_ENDIAN
+#       define TWPP_DETAIL_ENDIAN_BIG
+#   else
+#       error "unsupported endianness"
+#   endif
 #   define TWPP_DETAIL_CALLSTYLE
 namespace Twpp {
 
