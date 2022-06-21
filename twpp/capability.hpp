@@ -724,7 +724,7 @@ private:
         }
 
         bool operator!=(const IteratorImpl& o) const noexcept{
-            return (*this == o);
+            return !(*this == o);
         }
 
     private:
