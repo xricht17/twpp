@@ -2,7 +2,7 @@
 
 The MIT License (MIT)
 
-Copyright (c) 2015-2018 Martin Richter
+Copyright (c) 2015-2023 Martin Richter
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1989,11 +1989,18 @@ private:
             return badProtocol();
         }
 
-        bool isCapability = dg == DataGroup::Control && dat == Dat::Capability && data != nullptr;
         try {
-            return isCapability
-                    ? callCapability(*origin, dg, dat, msg, data)
-                    : call(*origin, dg, dat, msg, data);
+            if (data != nullptr){
+                if (dat == Dat::Capability){
+                    return callCapability(*origin, dg, dat, msg, data);
+                }
+
+                if (dat == Dat::ImageNativeXfer){
+                    return callImageNativeXfer(*origin, dg, dat, msg, data);
+                }
+            }
+
+            return call(*origin, dg, dat, msg, data);
         } catch (const std::bad_alloc&){
             return {ReturnCode::Failure, ConditionCode::LowMemory};
         } catch (...){
@@ -2015,6 +2022,14 @@ private:
         return call(origin, dg, dat, msg, data);
     }
 
+    Result callImageNativeXfer(const Identity& origin, DataGroup dg, Dat dat, Msg msg, void* data){
+        // same case as capability - make sure incoming handle is not freed
+        Handle& handle = *static_cast<Handle*>(data);
+        Detail::DoNotFreeHandle doNotFree(handle);
+        Detail::unused(doNotFree);
+
+        return call(origin, dg, dat, msg, data);
+    }
 
     Identity m_srcId;
     Identity m_appId;
