@@ -47,6 +47,7 @@ SOFTWARE.
 #include <array>
 #include <utility>
 #include <cassert>
+#include <functional>
 
 #include "twpp/utils.hpp"
 
@@ -56,6 +57,7 @@ SOFTWARE.
 #include "twpp/frame.hpp"
 #include "twpp/exception.hpp"
 #include "twpp/typesops.hpp"
+#include "twpp/supporteddat.hpp"
 
 #include "twpp/memoryops.hpp"
 #include "twpp/memory.hpp"
