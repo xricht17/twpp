@@ -57,7 +57,6 @@ SOFTWARE.
 #include "twpp/frame.hpp"
 #include "twpp/exception.hpp"
 #include "twpp/typesops.hpp"
-#include "twpp/supporteddat.hpp"
 
 #include "twpp/memoryops.hpp"
 #include "twpp/memory.hpp"
@@ -69,6 +68,7 @@ SOFTWARE.
 #include "twpp/imagelayout.hpp"
 #include "twpp/deviceevent.hpp"
 #include "twpp/element8.hpp"
+#include "twpp/supporteddat.hpp"
 
 #include "twpp/audio.hpp"
 #include "twpp/capability.hpp"
